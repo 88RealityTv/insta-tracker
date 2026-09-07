@@ -2,415 +2,275 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=1920, height=1080, initial-scale=1.0">
-    <title>StreamStats - Live Tracker</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>StreamStats Live - Desktop</title>
     <style>
         :root {
-            --bg-base: #09090b;
+            --bg-dark: #09090b;
             --bg-card: rgba(18, 18, 26, 0.7);
-            --neon-pink: #ff0066;
-            --neon-cyan: #00ffff;
-            --pos-green: #00ffcc;
-            --neg-red: #ff3366;
+            --neon-pink: #ff2a6d;
+            --neon-cyan: #05d9e8;
+            --neon-red: #ff003c;
+            --neon-green: #01ffc3;
             --glass-border: rgba(255, 255, 255, 0.1);
-            --text-main: #ffffff;
-            --text-dim: #888899;
-        }
-
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            font-family: system-ui, -apple-system, sans-serif;
-            user-select: none;
         }
 
         body {
-            width: 1920px;
-            height: 1080px;
+            background: var(--bg-dark);
+            color: white;
+            font-family: system-ui, -apple-system, sans-serif;
+            margin: 0;
+            padding: 2rem;
             overflow: hidden;
-            background-color: var(--bg-base);
-            /* Deep space subtle grid background */
-            background-image: 
-                linear-gradient(rgba(0, 255, 255, 0.03) 1px, transparent 1px),
-                linear-gradient(90deg, rgba(0, 255, 255, 0.03) 1px, transparent 1px);
-            background-size: 40px 40px;
-            color: var(--text-main);
             display: flex;
             flex-direction: column;
-            padding: 60px 80px;
-        }
-
-        /* HEADER & CONTROLS */
-        header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 50px;
-            padding-bottom: 20px;
-            border-bottom: 1px solid var(--glass-border);
-        }
-
-        h1 {
-            font-size: 48px;
-            font-weight: 900;
-            letter-spacing: -1px;
-            text-transform: uppercase;
-            background: linear-gradient(90deg, var(--text-main), var(--text-dim));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
+            height: 100vh;
+            box-sizing: border-box;
         }
 
         .controls {
-            display: flex;
-            gap: 15px;
-            background: rgba(0, 0, 0, 0.5);
-            padding: 10px;
-            border-radius: 12px;
+            background: rgba(10, 10, 15, 0.6);
+            backdrop-filter: blur(12px);
             border: 1px solid var(--glass-border);
-            backdrop-filter: blur(10px);
+            padding: 1rem 2rem;
+            border-radius: 12px;
+            display: inline-flex;
+            gap: 1rem;
+            margin-bottom: 2rem;
+            align-items: center;
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.5);
+            align-self: center;
         }
 
-        .time-btn {
+        .controls button {
             background: transparent;
-            color: var(--text-dim);
-            border: none;
-            padding: 12px 30px;
-            font-size: 20px;
-            font-weight: 700;
-            border-radius: 8px;
+            color: white;
+            border: 1px solid var(--glass-border);
+            padding: 0.5rem 1.5rem;
+            border-radius: 6px;
             cursor: pointer;
-            transition: all 0.3s ease;
+            font-weight: 800;
+            font-size: 1rem;
+            text-transform: uppercase;
+            transition: all 0.3s;
         }
 
-        .time-btn.active {
-            background: var(--neon-pink);
-            color: #fff;
-            box-shadow: 0 0 15px rgba(255, 0, 102, 0.5);
+        .controls button.active {
+            background: var(--neon-cyan);
+            color: var(--bg-dark);
+            box-shadow: 0 0 15px var(--neon-cyan);
+            border-color: var(--neon-cyan);
         }
 
-        /* GRID LAYOUT */
-        .grid-container {
+        #leaderboard {
             display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 40px;
-            flex-grow: 1;
-            align-content: start;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 1.5rem;
+            width: 100%;
+            align-items: start;
         }
 
-        /* CARD STYLES */
         .card {
             background: var(--bg-card);
+            backdrop-filter: blur(8px);
             border: 1px solid var(--glass-border);
-            border-radius: 20px;
-            padding: 30px;
+            border-radius: 16px;
+            padding: 1.5rem;
             display: flex;
-            flex-direction: column;
             align-items: center;
-            backdrop-filter: blur(15px);
+            gap: 1.5rem;
             position: relative;
-            transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.3s ease;
-            opacity: 1;
-            transform: scale(1);
-        }
-
-        .card.refreshing {
-            opacity: 0;
-            transform: scale(0.9);
-        }
-
-        /* HIGH GROWTH PULSE ANIMATION */
-        @keyframes pulseGlow {
-            0% { box-shadow: 0 0 15px rgba(255, 0, 102, 0.4), inset 0 0 10px rgba(255, 0, 102, 0.1); border-color: rgba(255, 0, 102, 0.5); }
-            50% { box-shadow: 0 0 35px rgba(255, 0, 102, 0.8), inset 0 0 20px rgba(255, 0, 102, 0.3); border-color: var(--neon-pink); }
-            100% { box-shadow: 0 0 15px rgba(255, 0, 102, 0.4), inset 0 0 10px rgba(255, 0, 102, 0.1); border-color: rgba(255, 0, 102, 0.5); }
+            z-index: 1;
         }
 
         .card.high-growth {
-            animation: pulseGlow 2s infinite;
-            z-index: 10;
-        }
-
-        /* RANK BADGE */
-        .rank {
-            position: absolute;
-            top: -15px;
-            left: -15px;
-            width: 50px;
-            height: 50px;
-            background: var(--bg-base);
-            border: 2px solid var(--neon-cyan);
-            color: var(--neon-cyan);
-            border-radius: 12px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            font-size: 24px;
-            font-weight: 900;
-            box-shadow: 0 0 15px rgba(0, 255, 255, 0.3);
-        }
-
-        .card:nth-child(1) .rank {
-            border-color: #ffd700;
-            color: #ffd700;
-            box-shadow: 0 0 20px rgba(255, 215, 0, 0.4);
-        }
-
-        /* AVATAR */
-        .avatar-container {
-            position: relative;
-            margin-bottom: 20px;
-        }
-
-        .avatar {
-            width: 140px;
-            height: 140px;
-            border-radius: 50%;
-            object-fit: cover;
-            border: 4px solid var(--glass-border);
-            background: #000;
-        }
-        
-        .card.high-growth .avatar {
+            animation: pulse-glow 2s infinite alternate;
             border-color: var(--neon-pink);
         }
 
-        /* TYPOGRAPHY */
+        @keyframes pulse-glow {
+            0% { box-shadow: 0 0 5px var(--neon-pink), inset 0 0 10px rgba(255, 42, 109, 0.2); }
+            100% { box-shadow: 0 0 25px var(--neon-pink), inset 0 0 20px rgba(255, 42, 109, 0.4); }
+        }
+
+        .avatar {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid var(--neon-cyan);
+        }
+
+        .info {
+            flex-grow: 1;
+        }
+
         .username {
-            font-size: 28px;
+            font-size: 1.2rem;
             font-weight: 700;
-            margin-bottom: 15px;
-            text-align: center;
-            width: 100%;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
+            color: #ccc;
+            margin-bottom: 0.2rem;
         }
 
         .count {
-            font-size: 56px;
+            font-size: 2.5rem;
             font-weight: 900;
-            letter-spacing: -2px;
-            margin-bottom: 10px;
-            text-shadow: 0 2px 10px rgba(0,0,0,0.5);
+            line-height: 1;
+            text-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
         }
 
-        /* GROWTH TAGS */
         .change-tag {
-            font-size: 22px;
-            font-weight: 800;
-            padding: 8px 16px;
-            border-radius: 30px;
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            font-weight: 900;
+            font-size: 1.2rem;
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 0.5rem;
         }
 
-        .change-tag.up {
-            background: rgba(0, 255, 204, 0.1);
-            color: var(--pos-green);
-            border: 1px solid rgba(0, 255, 204, 0.3);
+        .change-tag.positive {
+            background: rgba(1, 255, 195, 0.15);
+            color: var(--neon-green);
+            border: 1px solid var(--neon-green);
+            box-shadow: 0 0 10px rgba(1, 255, 195, 0.2);
         }
 
-        .change-tag.down {
-            background: rgba(255, 51, 102, 0.15);
-            color: var(--neg-red);
-            border: 1px solid var(--neg-red);
-            box-shadow: 0 0 15px rgba(255, 51, 102, 0.4); /* High contrast negative drop */
+        .change-tag.negative {
+            background: rgba(255, 0, 60, 0.2);
+            color: white;
+            border: 1px solid var(--neon-red);
+            box-shadow: 0 0 15px var(--neon-red);
         }
-        
-        .change-tag.neutral {
-            background: rgba(255, 255, 255, 0.1);
-            color: var(--text-dim);
-        }
-
     </style>
 </head>
 <body>
 
-    <header>
-        <h1>Live Tracking <span style="color: var(--neon-cyan)">// Data Matrix</span></h1>
-        <div class="controls">
-            <button class="time-btn active" data-range="1">24 Hours</button>
-            <button class="time-btn" data-range="3">3 Days</button>
-            <button class="time-btn" data-range="7">7 Days</button>
-        </div>
-    </header>
+    <div class="controls">
+        <button data-range="1" class="active">24 Hours</button>
+        <button data-range="3">3 Days</button>
+        <button data-range="7">7 Days</button>
+    </div>
 
-    <div class="grid-container" id="dashboard">
-        </div>
+    <div id="leaderboard"></div>
 
     <script>
-        // CORE CONFIGURATION
-        const HIGH_GROWTH_THRESHOLD = 5000; // Triggers the neon pulse glow
-        const DATA_URL = 'data.json';
+        let rawData = {};
         
-        // STATE
-        let rawData = null;
-        let sortedDates = [];
-        let currentRange = 1; 
-
-        // UTILITY: Format numbers with commas
-        const formatNum = (num) => new Intl.NumberFormat('en-US').format(num);
-
-        // UTILITY: Absolute Path Resolution for GitHub Pages compliance
-        function getAbsoluteImagePath(imgPath) {
-            if (imgPath.startsWith('http://') || imgPath.startsWith('https://') || imgPath.startsWith('data:')) {
-                return imgPath;
-            }
-            const basePath = window.location.origin + window.location.pathname.replace(/\/[^\/]*$/, '/');
-            // Remove leading slash from imgPath if exists to avoid double slashes
-            const cleanImgPath = imgPath.startsWith('/') ? imgPath.substring(1) : imgPath;
-            return basePath + cleanImgPath;
+        function resolveImageUrl(imgPath) {
+            if (imgPath.startsWith('http')) return imgPath;
+            let path = window.location.pathname;
+            if (path.endsWith('.html')) path = path.substring(0, path.lastIndexOf('/'));
+            return window.location.origin + path + '/' + imgPath;
         }
 
-        // INIT: Fetch data
+        function formatNumber(num) {
+            return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+        }
+
         async function init() {
             try {
-                const response = await fetch(DATA_URL);
-                if (!response.ok) throw new Error("Dataset not found.");
+                const response = await fetch('data.json');
                 rawData = await response.json();
-            } catch (err) {
-                console.error("Failed to load data.json. Injecting fallback mock data for testing.", err);
-                // MOCK DATA TO PREVENT OBS CRASHES IF FILE IS MISSING
-                const today = new Date();
-                const d1 = today.toISOString().split('T')[0];
-                today.setDate(today.getDate() - 1);
-                const d2 = today.toISOString().split('T')[0];
-                today.setDate(today.getDate() - 6);
-                const d7 = today.toISOString().split('T')[0];
-                
-                rawData = {
-                    [d1]: {
-                        "AlphaCreator": { "count": 7350000, "img": "https://picsum.photos/200?1" },
-                        "BetaStreamer": { "count": 236000, "img": "https://picsum.photos/200?2" },
-                        "GammaVlogs": { "count": 1205000, "img": "https://picsum.photos/200?3" },
-                        "DeltaGaming": { "count": 890000, "img": "https://picsum.photos/200?4" }
-                    },
-                    [d2]: {
-                        "AlphaCreator": { "count": 7300000, "img": "https://picsum.photos/200?1" },
-                        "BetaStreamer": { "count": 238000, "img": "https://picsum.photos/200?2" }, // Drop trigger
-                        "GammaVlogs": { "count": 1201000, "img": "https://picsum.photos/200?3" },
-                        "DeltaGaming": { "count": 889000, "img": "https://picsum.photos/200?4" }
-                    },
-                    [d7]: {
-                        "AlphaCreator": { "count": 7100000, "img": "https://picsum.photos/200?1" },
-                        "BetaStreamer": { "count": 245000, "img": "https://picsum.photos/200?2" },
-                        "GammaVlogs": { "count": 1100000, "img": "https://picsum.photos/200?3" },
-                        "DeltaGaming": { "count": 880000, "img": "https://picsum.photos/200?4" }
-                    }
-                };
+                renderData(1);
+            } catch (e) {
+                console.error("Error loading data.json", e);
             }
-
-            // Extract and sort dates descending (latest first)
-            sortedDates = Object.keys(rawData).sort((a, b) => new Date(b) - new Date(a));
-            
-            if (sortedDates.length === 0) return;
-
-            setupEventListeners();
-            renderDashboard(currentRange);
         }
 
-        // LOGIC: Calculate stats based on time range
-        function processStats(daysBack) {
-            const latestDate = sortedDates[0];
-            const targetDate = sortedDates.find((d, index) => index >= daysBack) || sortedDates[sortedDates.length - 1];
-            
+        function renderData(days) {
+            const dates = Object.keys(rawData).sort();
+            if (dates.length === 0) return;
+
+            const latestDate = dates[dates.length - 1];
+            const targetDateIndex = Math.max(0, dates.length - 1 - days);
+            const baselineDate = dates[targetDateIndex];
+
             const latestData = rawData[latestDate];
-            const pastData = rawData[targetDate];
+            const baselineData = rawData[baselineDate];
 
-            let results = [];
-
-            for (const [username, currentStats] of Object.entries(latestData)) {
-                let pastCount = pastData[username] ? pastData[username].count : currentStats.count;
-                let growth = currentStats.count - pastCount;
-                
-                results.push({
-                    username,
-                    count: currentStats.count,
-                    growth: growth,
-                    img: getAbsoluteImagePath(currentStats.img)
-                });
+            let stats = [];
+            for (const username in latestData) {
+                const currentCount = latestData[username].count;
+                const img = resolveImageUrl(latestData[username].img);
+                const prevCount = baselineData[username] ? baselineData[username].count : currentCount;
+                const growth = currentCount - prevCount;
+                stats.push({ username, currentCount, growth, img });
             }
 
-            // GAMIFICATION: Sort by highest net growth first
-            return results.sort((a, b) => b.growth - a.growth);
-        }
+            stats.sort((a, b) => b.growth - a.growth);
 
-        // RENDER DOM
-        function renderDashboard(daysBack) {
-            const dashboard = document.getElementById('dashboard');
-            const data = processStats(daysBack);
+            const container = document.getElementById('leaderboard');
             
-            // Animation trigger: Add refreshing class to fade out slightly
-            const existingCards = dashboard.querySelectorAll('.card');
-            existingCards.forEach(c => c.classList.add('refreshing'));
+            // FLIP Animation Prep
+            const oldCards = Array.from(container.children);
+            const oldRects = new Map();
+            oldCards.forEach(card => oldRects.set(card.dataset.user, card.getBoundingClientRect()));
 
-            setTimeout(() => {
-                dashboard.innerHTML = ''; // Clear board
+            container.innerHTML = '';
 
-                data.forEach((user, index) => {
-                    const isHighGrowth = user.growth >= HIGH_GROWTH_THRESHOLD;
-                    
-                    let tagClass = 'neutral';
-                    let tagSymbol = '•';
-                    let growthText = '0';
+            const maxGrowth = Math.max(...stats.map(s => s.growth));
 
-                    if (user.growth > 0) {
-                        tagClass = 'up';
-                        tagSymbol = '▲';
-                        growthText = `+${formatNum(user.growth)}`;
-                    } else if (user.growth < 0) {
-                        tagClass = 'down';
-                        tagSymbol = '▼';
-                        growthText = formatNum(user.growth);
+            stats.forEach(stat => {
+                const isHighGrowth = stat.growth > 0 && stat.growth === maxGrowth && stat.growth > 1000;
+                const isNegative = stat.growth < 0;
+                const sign = stat.growth > 0 ? '+' : '';
+                
+                const card = document.createElement('div');
+                card.className = `card ${isHighGrowth ? 'high-growth' : ''}`;
+                card.dataset.user = stat.username;
+                
+                card.innerHTML = `
+                    <img src="${stat.img}" class="avatar" onerror="this.src='https://ui-avatars.com/api/?name=${stat.username}&background=random'">
+                    <div class="info">
+                        <div class="username">@${stat.username}</div>
+                        <div class="count">${formatNumber(stat.currentCount)}</div>
+                    </div>
+                    <div class="change-tag ${isNegative ? 'negative' : 'positive'}">
+                        ${sign}${formatNumber(stat.growth)}
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+
+            // FLIP Animation Execute
+            const newCards = Array.from(container.children);
+            newCards.forEach(card => {
+                const oldRect = oldRects.get(card.dataset.user);
+                if (oldRect) {
+                    const newRect = card.getBoundingClientRect();
+                    const dx = oldRect.left - newRect.left;
+                    const dy = oldRect.top - newRect.top;
+                    if (dx !== 0 || dy !== 0) {
+                        card.style.transform = `translate(${dx}px, ${dy}px)`;
+                        card.style.transition = 'none';
+                        requestAnimationFrame(() => {
+                            card.style.transform = '';
+                            card.style.transition = 'transform 0.6s cubic-bezier(0.25, 1, 0.5, 1)';
+                        });
                     }
-
-                    const card = document.createElement('div');
-                    // Add high-growth class for pulse animation if applicable
-                    card.className = `card ${isHighGrowth ? 'high-growth' : ''} refreshing`;
-                    
-                    card.innerHTML = `
-                        <div class="rank">#${index + 1}</div>
-                        <div class="avatar-container">
-                            <img src="${user.img}" alt="${user.username}" class="avatar">
-                        </div>
-                        <div class="username">${user.username}</div>
-                        <div class="count">${formatNum(user.count)}</div>
-                        <div class="change-tag ${tagClass}">
-                            <span>${tagSymbol}</span>
-                            <span>${growthText}</span>
-                        </div>
-                    `;
-
-                    dashboard.appendChild(card);
-
-                    // Trigger reflow to apply CSS transition for fade in
-                    void card.offsetWidth;
-                    card.classList.remove('refreshing');
-                });
-            }, 300); // 300ms delay syncs with CSS opacity transition
-        }
-
-        // EVENT LISTENERS
-        function setupEventListeners() {
-            const buttons = document.querySelectorAll('.time-btn');
-            buttons.forEach(btn => {
-                btn.addEventListener('click', (e) => {
-                    // Update active styling
-                    buttons.forEach(b => b.classList.remove('active'));
-                    e.target.classList.add('active');
-
-                    // Update data
-                    currentRange = parseInt(e.target.dataset.range);
-                    renderDashboard(currentRange);
-                });
+                } else {
+                    card.style.opacity = 0;
+                    card.style.transform = 'scale(0.9)';
+                    requestAnimationFrame(() => {
+                        card.style.transition = 'all 0.5s ease-out';
+                        card.style.opacity = 1;
+                        card.style.transform = 'scale(1)';
+                    });
+                }
             });
         }
 
-        // BOOTSTRAP
-        window.addEventListener('DOMContentLoaded', init);
+        document.querySelectorAll('.controls button').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                document.querySelectorAll('.controls button').forEach(b => b.classList.remove('active'));
+                e.target.classList.add('active');
+                renderData(parseInt(e.target.dataset.range));
+            });
+        });
 
+        init();
+        setInterval(init, 60000); // Refresh data every 60 seconds
     </script>
 </body>
 </html>
