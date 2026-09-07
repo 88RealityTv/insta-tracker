@@ -2,419 +2,294 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>StreamStats Live - Main Broadcast</title>
+    <meta name="viewport" content="width=1920, height=1080, initial-scale=1.0">
+    <title>StreamStats - Horizontal</title>
     <style>
         :root {
-            --bg-deep: #050507;
-            --bg-card: rgba(18, 18, 26, 0.85);
-            --neon-pink: #ff007f;
-            --neon-cyan: #00f3ff;
-            --loss-red: #ff003c;
-            --gain-green: #00ff88;
+            --bg-color: #09090b;
+            --panel-bg: rgba(18, 18, 26, 0.6);
+            --pink: #d6249f;
+            --pink-grad: linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%);
+            --cyan: #00f3ff;
             --text-main: #ffffff;
-            --text-muted: #888899;
+            --text-muted: #8892b0;
+            --card-h: 120px;
+            --card-gap: 20px;
         }
 
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-        }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: system-ui, -apple-system, sans-serif; }
 
         body {
-            background-color: var(--bg-deep);
+            background-color: var(--bg-color);
+            background-image: radial-gradient(circle at 50% 0%, #1f1f3a 0%, transparent 50%);
             color: var(--text-main);
-            width: 100%;
-            height: 100vh;
-            overflow-y: auto;
-            overflow-x: hidden;
+            width: 1920px;
+            height: 1080px;
+            overflow: hidden;
             display: flex;
             flex-direction: column;
-            padding: 40px 5%;
-            background: 
-                radial-gradient(circle at 10% 20%, rgba(0, 243, 255, 0.08), transparent 30%),
-                radial-gradient(circle at 90% 80%, rgba(0, 255, 136, 0.05), transparent 30%),
-                var(--bg-deep);
+            padding: 50px 100px;
         }
 
-        ::-webkit-scrollbar { width: 12px; }
-        ::-webkit-scrollbar-track { background: var(--bg-deep); }
-        ::-webkit-scrollbar-thumb { background: linear-gradient(135deg, var(--neon-cyan), var(--gain-green)); border-radius: 6px; }
-
-        header {
-            width: 100%;
-            min-width: 800px;
+        .header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 50px;
+            margin-bottom: 40px;
             z-index: 10;
         }
 
-        h1 {
-            font-size: 3.5rem;
+        .title-box h1 {
+            font-size: 3rem;
             font-weight: 900;
             text-transform: uppercase;
-            letter-spacing: 4px;
-            text-shadow: 0 0 25px rgba(0, 243, 255, 0.5);
-            display: flex;
-            align-items: center;
-            gap: 20px;
+            letter-spacing: 2px;
+            background: var(--pink-grad);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
         }
 
-        .slider-wrapper {
-            background: rgba(10, 10, 15, 0.9);
-            padding: 15px 30px;
-            border-radius: 16px;
-            border: 1px solid rgba(0, 243, 255, 0.3);
-            box-shadow: 0 0 20px rgba(0, 243, 255, 0.1);
-            width: 400px;
+        .controls {
             display: flex;
-            flex-direction: column;
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 50px;
+            padding: 10px;
             gap: 10px;
         }
 
-        .slider-labels {
-            display: flex;
-            justify-content: space-between;
-            font-weight: 800;
-            font-size: 1rem;
+        .controls button {
+            background: transparent;
+            border: none;
             color: var(--text-muted);
-            text-transform: uppercase;
-        }
-
-        .slider-labels span {
-            width: 33%;
-            text-align: center;
-            transition: color 0.3s;
-        }
-
-        .slider-labels span.active {
-            color: var(--neon-cyan);
-            text-shadow: 0 0 10px var(--neon-cyan);
-        }
-
-        input[type=range] {
-            -webkit-appearance: none;
-            width: 100%;
-            background: rgba(255, 255, 255, 0.1);
-            height: 8px;
-            border-radius: 4px;
-            outline: none;
-            position: relative;
+            font-size: 1.2rem;
+            font-weight: 700;
+            padding: 12px 30px;
+            border-radius: 40px;
             cursor: pointer;
+            transition: all 0.3s ease;
         }
 
-        input[type=range]::-webkit-slider-thumb {
-            -webkit-appearance: none;
-            width: 24px;
-            height: 24px;
-            border-radius: 50%;
-            background: var(--neon-cyan);
-            box-shadow: 0 0 15px var(--neon-cyan);
-            cursor: pointer;
-            transition: transform 0.1s;
+        .controls button.active {
+            background: var(--text-main);
+            color: var(--bg-color);
+            box-shadow: 0 0 15px rgba(255, 255, 255, 0.5);
         }
 
-        input[type=range]::-webkit-slider-thumb:hover { transform: scale(1.2); }
-
-        #leaderboard {
+        .leaderboard {
             position: relative;
+            flex: 1;
             width: 100%;
-            min-width: 800px; 
-            flex-grow: 1;
-            transition: height 0.4s ease;
         }
 
         .card {
             position: absolute;
-            height: 110px;
-            background: var(--bg-card);
-            backdrop-filter: blur(20px);
-            border: 1px solid rgba(0, 243, 255, 0.2);
-            border-radius: 16px;
+            left: 0;
+            right: 0;
+            height: var(--card-h);
+            background: var(--panel-bg);
+            backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 20px;
             display: flex;
             align-items: center;
-            padding: 0 30px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.8);
-            will-change: transform, opacity;
+            padding: 0 40px;
+            transition: top 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+            overflow: visible;
         }
 
-        @keyframes pulse-glow-green {
-            0% { box-shadow: 0 0 20px rgba(0, 255, 136, 0.3), inset 0 0 10px rgba(0, 255, 136, 0.1); border-color: rgba(0, 255, 136, 0.4); }
-            50% { box-shadow: 0 0 40px rgba(0, 255, 136, 0.7), inset 0 0 20px rgba(0, 255, 136, 0.3); border-color: var(--gain-green); }
-            100% { box-shadow: 0 0 20px rgba(0, 255, 136, 0.3), inset 0 0 10px rgba(0, 255, 136, 0.1); border-color: rgba(0, 255, 136, 0.4); }
+        @keyframes pulseGlow {
+            0% { box-shadow: 0 0 5px var(--glow-color), inset 0 0 5px var(--glow-color); }
+            50% { box-shadow: 0 0 25px var(--glow-color), inset 0 0 10px var(--glow-color); }
+            100% { box-shadow: 0 0 5px var(--glow-color), inset 0 0 5px var(--glow-color); }
         }
 
-        @keyframes pulse-loss { 
-            0% { box-shadow: 0 0 15px rgba(255, 0, 60, 0.3); border-color: rgba(255, 0, 60, 0.4); } 
-            100% { box-shadow: 0 0 30px rgba(255, 0, 60, 0.7); border-color: var(--loss-red); } 
+        .card.active-glow {
+            border-color: var(--glow-color);
+            animation: pulseGlow 2s infinite ease-in-out;
         }
 
-        .card.growth-up {
-            animation: pulse-glow-green 2s infinite;
-            z-index: 5;
-            background: rgba(0, 255, 136, 0.05);
-        }
-
-        .card.growth-down {
-            animation: pulse-loss 1.5s infinite alternate;
-            background: rgba(255, 0, 60, 0.05);
-        }
-
-        .rank {
-            font-size: 2.5rem;
+        .marker {
+            position: absolute;
+            top: -15px;
+            right: 30px;
+            background: var(--bg-color);
+            border: 2px solid var(--glow-color);
+            color: var(--text-main);
+            font-size: 1rem;
             font-weight: 900;
-            color: rgba(255, 255, 255, 0.2);
-            width: 60px;
-            font-style: italic;
+            padding: 5px 15px;
+            border-radius: 20px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.5);
+            z-index: 5;
         }
 
         .avatar {
-            width: 75px;
-            height: 75px;
+            width: 80px;
+            height: 80px;
             border-radius: 50%;
+            border: 3px solid var(--text-muted);
             object-fit: cover;
-            border: 2px solid var(--neon-cyan);
-            margin-right: 20px;
+            margin-right: 30px;
         }
 
         .info {
-            flex-grow: 1;
-            display: flex;
-            flex-direction: column;
-            overflow: hidden;
+            flex: 1;
         }
 
         .username {
-            font-size: 1.8rem;
+            font-size: 2rem;
             font-weight: 800;
-            white-space: nowrap;
-            text-overflow: ellipsis;
-            overflow: hidden;
-        }
-
-        .metrics {
-            display: flex;
-            align-items: center;
-            gap: 25px;
-            margin-left: 15px;
+            margin-bottom: 5px;
         }
 
         .count {
-            font-size: 3rem;
-            font-weight: 900;
+            font-size: 1.5rem;
+            color: var(--text-muted);
             font-variant-numeric: tabular-nums;
-            min-width: 180px;
-            text-align: right;
-        }
-
-        .stats-col {
-            display: flex;
-            flex-direction: column;
-            align-items: flex-end;
-            gap: 5px;
-            min-width: 140px;
         }
 
         .change-tag {
-            font-size: 1.3rem;
+            font-size: 2.2rem;
             font-weight: 900;
-            padding: 6px 15px;
-            border-radius: 8px;
             display: flex;
             align-items: center;
-            gap: 6px;
-            justify-content: flex-end;
-            width: 100%;
+            gap: 10px;
+            font-variant-numeric: tabular-nums;
         }
-
-        .pct-tag {
-            font-size: 1rem;
-            font-weight: 700;
-            color: var(--text-muted);
-        }
-
-        .change-tag.up { background: rgba(0, 255, 136, 0.15); color: var(--gain-green); border: 1px solid rgba(0, 255, 136, 0.5); }
-        .change-tag.down { background: rgba(255, 0, 60, 0.2); color: var(--loss-red); border: 1px solid var(--loss-red); }
 
     </style>
 </head>
 <body>
-
-    <header>
-        <h1>Live <span style="color: var(--neon-cyan);">Leaderboard</span></h1>
-        <div class="slider-wrapper">
-            <div class="slider-labels">
-                <span id="label-0" class="active">24 Hours</span>
-                <span id="label-1">3 Days</span>
-                <span id="label-2">7 Days</span>
-            </div>
-            <input type="range" id="timeSlider" min="0" max="2" step="1" value="0">
+    <div class="header">
+        <div class="title-box">
+            <h1>Follower Tracker</h1>
         </div>
-    </header>
-
-    <div id="leaderboard"></div>
+        <div class="controls">
+            <button onclick="updateData(1)" id="btn-1">24 Hours</button>
+            <button onclick="updateData(3)" id="btn-3" class="active">3 Days</button>
+            <button onclick="updateData(7)" id="btn-7">7 Days</button>
+        </div>
+    </div>
+    <div class="leaderboard" id="leaderboard"></div>
 
     <script>
-        let globalDataset = {};
-        let sortedDates = [];
-        let currentLeaderArray = [];
-        const sliderMap = { 0: 1, 1: 3, 2: 7 };
-
-        function resolveImagePath(imgString) {
-            if (!imgString) return 'image_59dec3.jpg';
-            if (imgString.startsWith('http')) return imgString;
-            
-            let basePath = window.location.origin + window.location.pathname;
-            if (basePath.endsWith('.html')) basePath = basePath.substring(0, basePath.lastIndexOf('/'));
-            if (basePath.endsWith('/')) basePath = basePath.slice(0, -1);
-            if (imgString.startsWith('/')) imgString = imgString.substring(1);
-            
-            return `${basePath}/${imgString}`;
-        }
-
-        function formatNumber(num) { return Math.floor(num).toLocaleString('en-US'); }
-
-        function animateValue(element, start, end, duration) {
-            if (start === end) {
-                element.innerHTML = formatNumber(end);
-                return;
-            }
-            let startTimestamp = null;
-            const step = (timestamp) => {
-                if (!startTimestamp) startTimestamp = timestamp;
-                const progress = Math.min((timestamp - startTimestamp) / duration, 1);
-                const easeProgress = 1 - Math.pow(1 - progress, 3);
-                const current = (easeProgress * (end - start) + start);
-                element.innerHTML = formatNumber(current);
-                if (progress < 1) window.requestAnimationFrame(step);
-                else element.innerHTML = formatNumber(end);
-            };
-            window.requestAnimationFrame(step);
-        }
+        let rawData = null;
+        let dates = [];
+        const cardHeight = 120;
+        const cardGap = 20;
 
         async function init() {
             try {
-                const response = await fetch('data.json?t=' + Date.now());
-                globalDataset = await response.json();
-                sortedDates = Object.keys(globalDataset).sort((a, b) => b.localeCompare(a));
-                
-                if (sortedDates.length > 0) {
-                    document.getElementById('timeSlider').addEventListener('input', (e) => {
-                        const val = parseInt(e.target.value);
-                        updateDashboard(sliderMap[val]);
-                        document.querySelectorAll('.slider-labels span').forEach((el, idx) => {
-                            el.className = idx === val ? 'active' : '';
-                        });
-                    });
-                    updateDashboard(1, true); 
-                }
-            } catch (error) { console.error('Error fetching data:', error); }
+                const res = await fetch('data.json');
+                rawData = await res.json();
+                dates = Object.keys(rawData).sort();
+                updateData(3);
+            } catch (err) {
+                console.error("Error loading data.json", err);
+            }
         }
 
-        function updateDashboard(daysBack, isInitialLoad = false) {
-            const latestDate = sortedDates[0];
-            const targetIndex = Math.min(daysBack, sortedDates.length - 1);
-            const pastDate = sortedDates[targetIndex];
-            
-            let leaderArray = [];
-            for (const [username, currentMetrics] of Object.entries(globalDataset[latestDate])) {
-                const currentCount = currentMetrics.count;
-                const pastCount = (globalDataset[pastDate] && globalDataset[pastDate][username]) ? globalDataset[pastDate][username].count : currentCount;
-                const growth = currentCount - pastCount;
-                const pct = pastCount === 0 ? 0 : (growth / pastCount) * 100;
+        function getAbsolutePath(path) {
+            if(path.startsWith('http')) return path;
+            const baseUrl = window.location.origin + window.location.pathname;
+            return new URL(path, baseUrl).href;
+        }
 
-                leaderArray.push({
-                    username, currentCount, pastCount, growth, pct, img: resolveImagePath(currentMetrics.img)
-                });
+        function updateData(daysAgo) {
+            document.querySelectorAll('.controls button').forEach(b => b.classList.remove('active'));
+            document.getElementById(`btn-${daysAgo}`).classList.add('active');
+
+            if (!dates.length) return;
+            const latestDate = dates[dates.length - 1];
+            const pastIndex = Math.max(0, dates.length - 1 - daysAgo);
+            const pastDate = dates[pastIndex];
+
+            const currentStats = rawData[latestDate];
+            const pastStats = rawData[pastDate];
+
+            let players = [];
+            let posPercents = [];
+            let negPercents = [];
+
+            for (const [user, data] of Object.entries(currentStats)) {
+                const currentCount = data.count;
+                const pastCount = pastStats[user] ? pastStats[user].count : currentCount;
+                const growth = currentCount - pastCount;
+                const percent = pastCount > 0 ? (growth / pastCount) * 100 : 0;
+
+                if(percent > 0) posPercents.push(percent);
+                if(percent < 0) negPercents.push(Math.abs(percent));
+
+                players.push({ user, currentCount, growth, percent, img: data.img });
             }
 
-            leaderArray.sort((a, b) => b.currentCount - a.currentCount);
-            currentLeaderArray = leaderArray;
-            renderCards(leaderArray, isInitialLoad);
-        }
+            players.sort((a, b) => b.growth - a.growth);
 
-        function renderCards(leaderArray, isInitialLoad) {
+            const maxPos = Math.max(...posPercents, 0.01);
+            const minPos = Math.min(...posPercents, 0);
+            const maxNeg = Math.max(...negPercents, 0.01);
+            const minNeg = Math.min(...negPercents, 0);
+
             const board = document.getElementById('leaderboard');
-            const cardHeight = 110; 
-            const gapX = 30; 
-            const gapY = 20; 
-
-            const rows = Math.ceil(leaderArray.length / 2);
-            board.style.height = `${rows * (cardHeight + gapY)}px`;
-
-            leaderArray.forEach((user, index) => {
-                let card = document.getElementById(`card-${user.username}`);
-                let isNewCard = false;
-                
-                const isGrowth = user.growth > 0;
-                const isLoss = user.growth < 0;
-                const pctFormatted = Math.abs(user.pct).toFixed(2) + '%';
-                
+            
+            players.forEach((p, index) => {
+                let card = document.getElementById(`card-${p.user}`);
                 if (!card) {
-                    isNewCard = true;
                     card = document.createElement('div');
-                    card.id = `card-${user.username}`;
-                    card.className = 'card';
-                    card.dataset.prevCount = user.currentCount; 
-                    
+                    card.id = `card-${p.user}`;
+                    card.className = 'card active-glow';
                     card.innerHTML = `
-                        <div class="rank"></div>
-                        <img class="avatar" src="" alt="" onerror="this.src='image_59dec3.jpg'">
-                        <div class="info"><div class="username"></div></div>
-                        <div class="metrics">
-                            <div class="count"></div>
-                            <div class="stats-col">
-                                <div class="change-tag"></div>
-                                <div class="pct-tag"></div>
-                            </div>
+                        <div class="marker" id="marker-${p.user}"></div>
+                        <img class="avatar" id="img-${p.user}" src="" alt="">
+                        <div class="info">
+                            <div class="username">${p.user}</div>
+                            <div class="count" id="count-${p.user}"></div>
                         </div>
+                        <div class="change-tag" id="change-${p.user}"></div>
                     `;
                     board.appendChild(card);
                 }
 
-                const col = index % 2; 
-                const row = Math.floor(index / 2);
-                card.style.width = `calc(50% - ${gapX / 2}px)`;
+                card.style.top = `${index * (cardHeight + cardGap)}px`;
+                document.getElementById(`img-${p.user}`).src = getAbsolutePath(p.img);
+                document.getElementById(`count-${p.user}`).innerText = p.currentCount.toLocaleString();
+
+                const changeEl = document.getElementById(`change-${p.user}`);
+                const markerEl = document.getElementById(`marker-${p.user}`);
                 
-                const xOffset = col === 0 ? '0px' : `calc(100% + ${gapX}px)`;
-                const yOffset = `${row * (cardHeight + gapY)}px`;
-                
-                if (isNewCard && isInitialLoad) {
-                    card.style.transform = `translate(${xOffset}, 150vh)`;
-                    card.style.opacity = '0';
-                    void card.offsetWidth; 
-                    card.style.transition = `transform 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) ${index * 0.08}s, opacity 0.8s ease ${index * 0.08}s, box-shadow 0.3s`;
-                } else if (!isInitialLoad) {
-                    card.style.transition = `transform 0.8s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.3s`;
+                let glowColor, intensity;
+                if (p.growth > 0) {
+                    changeEl.innerText = `▲ +${p.growth.toLocaleString()}`;
+                    changeEl.style.color = '#00ff88';
+                    let ratio = posPercents.length > 1 ? (p.percent - minPos) / (maxPos - minPos) : 1;
+                    intensity = 0.3 + (0.7 * ratio); // 0.3 to 1.0
+                    glowColor = `rgba(0, 255, 136, ${intensity})`;
+                    markerEl.innerText = index === 0 ? "🏆 TOP GAINER" : "📈 UP";
+                } else if (p.growth < 0) {
+                    changeEl.innerText = `▼ ${p.growth.toLocaleString()}`;
+                    changeEl.style.color = '#ff3366';
+                    let absP = Math.abs(p.percent);
+                    let ratio = negPercents.length > 1 ? (absP - minNeg) / (maxNeg - minNeg) : 1;
+                    intensity = 0.3 + (0.7 * ratio);
+                    glowColor = `rgba(255, 51, 102, ${intensity})`;
+                    markerEl.innerText = index === players.length - 1 ? "🔻 BIGGEST DROP" : "⚠️ LOSS";
+                } else {
+                    changeEl.innerText = `- 0`;
+                    changeEl.style.color = 'var(--text-muted)';
+                    glowColor = 'rgba(255,255,255,0.1)';
+                    card.classList.remove('active-glow');
+                    markerEl.innerText = "FLAT";
                 }
 
-                card.style.opacity = '1';
-                card.style.transform = `translate(${xOffset}, ${yOffset})`;
-                card.className = `card ${isGrowth ? 'growth-up' : (isLoss ? 'growth-down' : '')}`;
-
-                card.querySelector('.rank').innerText = `#${index + 1}`;
-                card.querySelector('.avatar').src = user.img;
-                card.querySelector('.username').innerText = user.username; 
-
-                const countEl = card.querySelector('.count');
-                const prevCount = parseInt(card.dataset.prevCount) || user.currentCount;
-                animateValue(countEl, prevCount, user.currentCount, 800);
-                card.dataset.prevCount = user.currentCount;
-
-                const changeTag = card.querySelector('.change-tag');
-                changeTag.className = `change-tag ${isLoss ? 'down' : 'up'}`;
-                changeTag.innerText = `${isLoss ? '▼' : '▲'} ${formatNumber(Math.abs(user.growth))}`;
-                card.querySelector('.pct-tag').innerText = `${isLoss ? '-' : '+'}${pctFormatted}`;
+                if(p.growth !== 0) card.classList.add('active-glow');
+                card.style.setProperty('--glow-color', glowColor);
+                markerEl.style.color = p.growth > 0 ? '#00ff88' : (p.growth < 0 ? '#ff3366' : 'var(--text-muted)');
             });
         }
 
-        window.addEventListener('resize', () => { if(currentLeaderArray.length > 0) renderCards(currentLeaderArray, false); });
-        window.addEventListener('DOMContentLoaded', init);
-        setInterval(init, 60000); 
+        init();
     </script>
 </body>
 </html>
