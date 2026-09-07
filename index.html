@@ -11,6 +11,7 @@
             --neon-pink: #ff007f;
             --neon-cyan: #00f3ff;
             --loss-red: #ff003c;
+            --gain-green: #00ff88;
             --text-main: #ffffff;
             --text-muted: #888899;
         }
@@ -31,103 +32,111 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            padding: 60px;
+            padding: 60px 80px;
+            background-image: 
+                radial-gradient(circle at 15% 50%, rgba(0, 243, 255, 0.05), transparent 25%),
+                radial-gradient(circle at 85% 30%, rgba(255, 0, 127, 0.05), transparent 25%);
         }
 
         header {
             width: 100%;
-            max-width: 1400px;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 60px;
+            margin-bottom: 50px;
             z-index: 10;
         }
 
         h1 {
-            font-size: 3rem;
+            font-size: 3.5rem;
             font-weight: 900;
             text-transform: uppercase;
-            letter-spacing: 2px;
-            text-shadow: 0 0 20px rgba(0, 243, 255, 0.5);
+            letter-spacing: 3px;
+            text-shadow: 0 0 25px rgba(0, 243, 255, 0.4);
         }
 
         .controls {
             display: flex;
-            gap: 20px;
-            background: rgba(18, 18, 26, 0.8);
+            gap: 15px;
+            background: rgba(18, 18, 26, 0.6);
             padding: 10px;
-            border-radius: 12px;
-            backdrop-filter: blur(10px);
+            border-radius: 16px;
+            backdrop-filter: blur(12px);
             border: 1px solid rgba(0, 243, 255, 0.2);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
         }
 
         .toggle-btn {
             background: transparent;
             color: var(--text-muted);
             border: none;
-            padding: 15px 30px;
+            padding: 15px 35px;
             font-size: 1.2rem;
             font-weight: 800;
             cursor: pointer;
-            border-radius: 8px;
+            border-radius: 10px;
             transition: all 0.3s ease;
             text-transform: uppercase;
+            letter-spacing: 1px;
         }
 
         .toggle-btn.active {
-            background: linear-gradient(45deg, var(--neon-pink), #9d00ff);
+            background: linear-gradient(135deg, var(--neon-pink), #8a2be2);
             color: white;
-            box-shadow: 0 0 15px var(--neon-pink);
+            box-shadow: 0 0 20px rgba(255, 0, 127, 0.5);
+            border: 1px solid rgba(255, 255, 255, 0.2);
         }
 
         #leaderboard {
             position: relative;
             width: 100%;
-            max-width: 1400px;
-            height: 800px;
+            height: 820px;
         }
 
         .card {
             position: absolute;
             width: 100%;
             height: 120px;
-            background: rgba(18, 18, 26, 0.85);
+            background: rgba(18, 18, 26, 0.7);
             backdrop-filter: blur(15px);
-            border: 1px solid rgba(0, 243, 255, 0.3);
+            border: 1px solid rgba(0, 243, 255, 0.15);
             border-radius: 16px;
             display: flex;
             align-items: center;
-            padding: 0 30px;
-            transition: transform 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+            padding: 0 40px;
+            transition: transform 0.7s cubic-bezier(0.34, 1.56, 0.64, 1), background 0.3s ease;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
+            will-change: transform;
         }
 
         @keyframes pulse-glow {
-            0% { box-shadow: 0 0 10px var(--neon-pink), inset 0 0 10px var(--neon-pink); border-color: var(--neon-pink); }
-            50% { box-shadow: 0 0 30px var(--neon-pink), inset 0 0 15px var(--neon-pink); border-color: #ff4da6; }
-            100% { box-shadow: 0 0 10px var(--neon-pink), inset 0 0 10px var(--neon-pink); border-color: var(--neon-pink); }
+            0% { box-shadow: 0 0 15px rgba(255, 0, 127, 0.4), inset 0 0 10px rgba(255, 0, 127, 0.2); border-color: rgba(255, 0, 127, 0.5); }
+            50% { box-shadow: 0 0 40px rgba(255, 0, 127, 0.8), inset 0 0 20px rgba(255, 0, 127, 0.4); border-color: var(--neon-pink); }
+            100% { box-shadow: 0 0 15px rgba(255, 0, 127, 0.4), inset 0 0 10px rgba(255, 0, 127, 0.2); border-color: rgba(255, 0, 127, 0.5); }
         }
 
         .card.high-growth {
             animation: pulse-glow 2s infinite;
             z-index: 5;
+            background: rgba(255, 0, 127, 0.05);
         }
 
         .rank {
-            font-size: 2.5rem;
+            font-size: 2.8rem;
             font-weight: 900;
             color: var(--text-muted);
-            width: 60px;
+            width: 80px;
+            font-style: italic;
         }
 
         .avatar {
-            width: 80px;
-            height: 80px;
+            width: 84px;
+            height: 84px;
             border-radius: 50%;
             object-fit: cover;
             border: 2px solid var(--neon-cyan);
             margin-right: 30px;
+            box-shadow: 0 0 15px rgba(0, 243, 255, 0.3);
         }
 
         .info {
@@ -137,7 +146,7 @@
         }
 
         .username {
-            font-size: 1.8rem;
+            font-size: 2rem;
             font-weight: 800;
             letter-spacing: 1px;
         }
@@ -145,38 +154,49 @@
         .metrics {
             display: flex;
             align-items: center;
-            gap: 40px;
+            gap: 50px;
         }
 
         .count {
-            font-size: 3.5rem;
+            font-size: 4rem;
             font-weight: 900;
             color: var(--text-main);
             font-variant-numeric: tabular-nums;
+            text-shadow: 0 0 10px rgba(255, 255, 255, 0.2);
         }
 
         .change-tag {
-            font-size: 1.5rem;
+            font-size: 1.8rem;
             font-weight: 900;
-            padding: 8px 20px;
-            border-radius: 8px;
+            padding: 10px 25px;
+            border-radius: 12px;
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 12px;
             font-variant-numeric: tabular-nums;
+            min-width: 200px;
+            justify-content: flex-end;
         }
 
         .change-tag.up {
-            background: rgba(0, 243, 255, 0.15);
-            color: var(--neon-cyan);
-            border: 1px solid var(--neon-cyan);
+            background: rgba(0, 255, 136, 0.1);
+            color: var(--gain-green);
+            border: 1px solid rgba(0, 255, 136, 0.4);
+            box-shadow: 0 0 20px rgba(0, 255, 136, 0.2);
         }
 
         .change-tag.down {
             background: rgba(255, 0, 60, 0.15);
             color: var(--loss-red);
             border: 1px solid var(--loss-red);
-            box-shadow: 0 0 15px rgba(255, 0, 60, 0.4);
+            box-shadow: 0 0 25px rgba(255, 0, 60, 0.5);
+            animation: pulse-loss 2s infinite;
+        }
+
+        @keyframes pulse-loss {
+            0% { box-shadow: 0 0 15px rgba(255, 0, 60, 0.4); }
+            50% { box-shadow: 0 0 35px rgba(255, 0, 60, 0.7); }
+            100% { box-shadow: 0 0 15px rgba(255, 0, 60, 0.4); }
         }
     </style>
 </head>
@@ -197,7 +217,9 @@
         let globalDataset = {};
         let sortedDates = [];
         const SIGNIFICANT_GROWTH_THRESHOLD = 5000; 
+        let activeDaysBack = 1;
 
+        // Force absolute path resolution to prevent broken images on GitHub pages
         function resolveImagePath(imgString) {
             if (!imgString) return '';
             if (imgString.startsWith('http')) return imgString;
@@ -212,13 +234,14 @@
 
         async function init() {
             try {
-                const response = await fetch('data.json');
+                // Bypass browser cache for live updates
+                const response = await fetch('data.json?t=' + new Date().getTime());
                 globalDataset = await response.json();
                 
                 sortedDates = Object.keys(globalDataset).sort((a, b) => b.localeCompare(a));
                 
                 if (sortedDates.length > 0) {
-                    updateDashboard(1, document.querySelector('.toggle-btn.active'));
+                    updateDashboard(activeDaysBack, document.querySelector('.toggle-btn.active'));
                 }
             } catch (error) {
                 console.error('Error fetching data.json:', error);
@@ -226,8 +249,11 @@
         }
 
         function updateDashboard(daysBack, btnElement) {
-            document.querySelectorAll('.toggle-btn').forEach(btn => btn.classList.remove('active'));
-            if(btnElement) btnElement.classList.add('active');
+            activeDaysBack = daysBack;
+            if (btnElement) {
+                document.querySelectorAll('.toggle-btn').forEach(btn => btn.classList.remove('active'));
+                btnElement.classList.add('active');
+            }
 
             const latestDate = sortedDates[0];
             const targetIndex = Math.min(daysBack, sortedDates.length - 1);
@@ -277,11 +303,13 @@
                 }
 
                 card.className = `card ${isHighGrowth ? 'high-growth' : ''}`;
+                
+                // Triggers the smooth coordinate transition
                 card.style.transform = `translateY(${index * (cardHeight + gap)}px)`;
 
                 card.innerHTML = `
                     <div class="rank">#${index + 1}</div>
-                    <img class="avatar" src="${user.img}" alt="${user.username}">
+                    <img class="avatar" src="${user.img}" alt="${user.username}" onerror="this.src='https://ui-avatars.com/api/?name=${user.username}&background=0D8ABC&color=fff'">
                     <div class="info">
                         <div class="username">@${user.username}</div>
                     </div>
@@ -295,11 +323,10 @@
             });
         }
 
-        // Initialize on load
         window.addEventListener('DOMContentLoaded', init);
         
-        // Auto-refresh logic for live broadcast if dataset updates externally
-        setInterval(init, 300000); // Polling every 5 minutes
+        // Auto-refresh logic for OBS Browser Source every 60 seconds
+        setInterval(init, 60000); 
     </script>
 </body>
 </html>
