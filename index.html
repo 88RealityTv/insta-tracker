@@ -3,11 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>StreamStats Live Tracker - Cyberpunk Edition</title>
+    <title>StreamStats Live - Main Broadcast</title>
     <style>
         :root {
             --bg-deep: #050507;
-            --bg-card: rgba(18, 18, 26, 0.75);
+            --bg-card: rgba(18, 18, 26, 0.85);
             --neon-pink: #ff007f;
             --neon-cyan: #00f3ff;
             --loss-red: #ff003c;
@@ -23,252 +23,166 @@
             font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
         }
 
-        /* Fully responsive and dynamic body */
         body {
             background-color: var(--bg-deep);
             color: var(--text-main);
-            width: 100vw;
-            height: 100vh;
-            overflow: hidden;
+            min-width: 1920px;
+            min-height: 1080px;
+            overflow: auto; /* Enables both horizontal and vertical scrolling */
             display: flex;
             flex-direction: column;
-            padding: 40px 60px;
+            padding: 50px 80px;
             background: 
-                linear-gradient(rgba(5, 5, 7, 0.8), rgba(5, 5, 7, 0.95)),
-                repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0, 243, 255, 0.05) 2px, rgba(0, 243, 255, 0.05) 4px);
-            background-size: cover;
-            position: relative;
+                radial-gradient(circle at 10% 20%, rgba(0, 243, 255, 0.08), transparent 30%),
+                radial-gradient(circle at 90% 80%, rgba(255, 0, 127, 0.08), transparent 30%),
+                var(--bg-deep);
         }
 
-        /* Dynamic background animations to make it vibrant */
-        body::before, body::after {
-            content: '';
-            position: absolute;
-            width: 600px;
-            height: 600px;
-            border-radius: 50%;
-            filter: blur(120px);
-            z-index: -1;
-            animation: float-glow 10s infinite alternate ease-in-out;
-        }
-        
-        body::before {
-            background: rgba(0, 243, 255, 0.15);
-            top: -100px;
-            left: -100px;
-        }
-
-        body::after {
-            background: rgba(255, 0, 127, 0.15);
-            bottom: -100px;
-            right: -100px;
-            animation-delay: -5s;
-        }
-
-        @keyframes float-glow {
-            0% { transform: translate(0, 0) scale(1); }
-            100% { transform: translate(50px, 50px) scale(1.2); }
-        }
+        ::-webkit-scrollbar { width: 14px; height: 14px; }
+        ::-webkit-scrollbar-track { background: var(--bg-deep); }
+        ::-webkit-scrollbar-thumb { background: linear-gradient(135deg, var(--neon-pink), var(--neon-cyan)); border-radius: 10px; border: 3px solid var(--bg-deep); }
 
         header {
             width: 100%;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 30px;
+            margin-bottom: 40px;
             z-index: 10;
         }
 
         h1 {
-            font-size: 3rem;
+            font-size: 3.5rem;
             font-weight: 900;
             text-transform: uppercase;
             letter-spacing: 4px;
-            text-shadow: 0 0 20px rgba(0, 243, 255, 0.6), 0 0 40px rgba(0, 243, 255, 0.2);
-            display: flex;
-            align-items: center;
-            gap: 20px;
-        }
-
-        .broadcast-logo {
-            height: 50px;
-            border-radius: 8px;
-            box-shadow: 0 0 15px rgba(255, 255, 255, 0.2);
+            text-shadow: 0 0 25px rgba(0, 243, 255, 0.5);
         }
 
         .controls {
             display: flex;
-            gap: 12px;
-            background: rgba(10, 10, 15, 0.8);
-            padding: 8px;
+            gap: 15px;
+            background: rgba(10, 10, 15, 0.9);
+            padding: 10px;
             border-radius: 12px;
-            backdrop-filter: blur(20px);
             border: 1px solid rgba(0, 243, 255, 0.3);
-            box-shadow: 0 0 30px rgba(0, 243, 255, 0.1);
+            box-shadow: 0 0 20px rgba(0, 243, 255, 0.1);
         }
 
         .toggle-btn {
             background: transparent;
             color: var(--text-muted);
             border: none;
-            padding: 12px 25px;
-            font-size: 1.1rem;
+            padding: 15px 30px;
+            font-size: 1.2rem;
             font-weight: 800;
             cursor: pointer;
             border-radius: 8px;
-            transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+            transition: 0.3s ease;
             text-transform: uppercase;
-            letter-spacing: 1px;
         }
 
         .toggle-btn.active {
             background: linear-gradient(135deg, var(--neon-pink), #a200ff);
             color: white;
-            box-shadow: 0 0 25px rgba(255, 0, 127, 0.6);
-            border: 1px solid rgba(255, 255, 255, 0.3);
-            transform: scale(1.05);
+            box-shadow: 0 0 20px rgba(255, 0, 127, 0.6);
         }
 
         #leaderboard {
             position: relative;
             width: 100%;
             flex-grow: 1;
+            transition: height 0.4s ease;
         }
 
         .card {
             position: absolute;
-            left: 0;
-            top: 0;
-            height: 95px; /* Compacted to fit 8 rows perfectly */
+            height: 110px;
             background: var(--bg-card);
-            backdrop-filter: blur(12px);
+            backdrop-filter: blur(20px);
             border: 1px solid rgba(0, 243, 255, 0.2);
-            border-radius: 14px;
+            border-radius: 16px;
             display: flex;
             align-items: center;
-            padding: 0 25px;
-            transition: transform 0.8s cubic-bezier(0.34, 1.56, 0.64, 1), background 0.3s ease, box-shadow 0.3s ease;
-            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.7);
+            padding: 0 35px;
+            transition: transform 0.8s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.3s;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.8);
             will-change: transform;
-            overflow: hidden;
-        }
-
-        .card::before {
-            content: '';
-            position: absolute;
-            top: 0; left: -100%; width: 50%; height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.05), transparent);
-            transform: skewX(-20deg);
-            transition: 0.5s;
-        }
-
-        .card:hover::before {
-            left: 200%;
-            transition: 0.8s;
         }
 
         @keyframes pulse-glow {
-            0% { box-shadow: 0 0 15px rgba(255, 0, 127, 0.5), inset 0 0 10px rgba(255, 0, 127, 0.2); border-color: rgba(255, 0, 127, 0.6); }
-            50% { box-shadow: 0 0 40px rgba(255, 0, 127, 0.9), inset 0 0 20px rgba(255, 0, 127, 0.5); border-color: var(--neon-pink); }
-            100% { box-shadow: 0 0 15px rgba(255, 0, 127, 0.5), inset 0 0 10px rgba(255, 0, 127, 0.2); border-color: rgba(255, 0, 127, 0.6); }
+            0% { box-shadow: 0 0 20px rgba(255, 0, 127, 0.5), inset 0 0 10px rgba(255, 0, 127, 0.2); border-color: rgba(255, 0, 127, 0.6); }
+            50% { box-shadow: 0 0 45px rgba(255, 0, 127, 0.9), inset 0 0 25px rgba(255, 0, 127, 0.5); border-color: var(--neon-pink); }
+            100% { box-shadow: 0 0 20px rgba(255, 0, 127, 0.5), inset 0 0 10px rgba(255, 0, 127, 0.2); border-color: rgba(255, 0, 127, 0.6); }
         }
 
         .card.high-growth {
             animation: pulse-glow 2s infinite;
             z-index: 5;
-            background: rgba(255, 0, 127, 0.08);
         }
 
         .rank {
-            font-size: 2.2rem;
+            font-size: 2.5rem;
             font-weight: 900;
             color: rgba(255, 255, 255, 0.2);
-            width: 60px;
+            width: 70px;
             font-style: italic;
         }
 
         .avatar {
-            width: 65px;
-            height: 65px;
+            width: 75px;
+            height: 75px;
             border-radius: 50%;
             object-fit: cover;
             border: 2px solid var(--neon-cyan);
-            margin-right: 20px;
-            box-shadow: 0 0 15px rgba(0, 243, 255, 0.4);
+            margin-right: 25px;
         }
 
         .info {
             flex-grow: 1;
             display: flex;
             flex-direction: column;
-            min-width: 0;
         }
 
         .username {
-            font-size: 1.6rem;
+            font-size: 1.8rem;
             font-weight: 800;
-            letter-spacing: 1px;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
         }
 
         .metrics {
             display: flex;
             align-items: center;
-            gap: 25px;
-            margin-left: 10px;
+            gap: 40px;
         }
 
         .count {
-            font-size: 2.8rem;
+            font-size: 3.2rem;
             font-weight: 900;
-            color: var(--text-main);
             font-variant-numeric: tabular-nums;
-            text-shadow: 0 0 15px rgba(255, 255, 255, 0.3);
         }
 
         .change-tag {
-            font-size: 1.4rem;
+            font-size: 1.5rem;
             font-weight: 900;
-            padding: 8px 18px;
-            border-radius: 8px;
+            padding: 10px 20px;
+            border-radius: 10px;
             display: flex;
             align-items: center;
-            gap: 8px;
-            font-variant-numeric: tabular-nums;
-            min-width: 140px;
+            gap: 10px;
+            min-width: 160px;
             justify-content: flex-end;
         }
 
-        .change-tag.up {
-            background: rgba(0, 255, 136, 0.15);
-            color: var(--gain-green);
-            border: 1px solid rgba(0, 255, 136, 0.5);
-            box-shadow: 0 0 20px rgba(0, 255, 136, 0.2);
-        }
+        .change-tag.up { background: rgba(0, 255, 136, 0.15); color: var(--gain-green); border: 1px solid rgba(0, 255, 136, 0.5); }
+        .change-tag.down { background: rgba(255, 0, 60, 0.2); color: var(--loss-red); border: 1px solid var(--loss-red); animation: pulse-loss 1.5s infinite alternate; }
 
-        .change-tag.down {
-            background: rgba(255, 0, 60, 0.2);
-            color: var(--loss-red);
-            border: 1px solid var(--loss-red);
-            box-shadow: 0 0 25px rgba(255, 0, 60, 0.6);
-            animation: pulse-loss 1.5s infinite alternate;
-        }
-
-        @keyframes pulse-loss {
-            0% { box-shadow: 0 0 15px rgba(255, 0, 60, 0.5); }
-            100% { box-shadow: 0 0 30px rgba(255, 0, 60, 0.9); }
-        }
+        @keyframes pulse-loss { 0% { box-shadow: 0 0 15px rgba(255, 0, 60, 0.5); } 100% { box-shadow: 0 0 35px rgba(255, 0, 60, 0.9); } }
     </style>
 </head>
 <body>
 
     <header>
-        <h1>
-            <img src="image_4e8ca8.png" class="broadcast-logo" onerror="this.style.display='none'"> 
-            Leaderboard <span style="color: var(--neon-cyan); text-shadow: 0 0 20px var(--neon-cyan);">Live</span>
-        </h1>
+        <h1>Live <span style="color: var(--neon-cyan);">Leaderboard</span></h1>
         <div class="controls">
             <button class="toggle-btn active" onclick="updateDashboard(1, this)">24 Hours</button>
             <button class="toggle-btn" onclick="updateDashboard(3, this)">3 Days</button>
@@ -285,7 +199,7 @@
         let activeDaysBack = 1;
 
         function resolveImagePath(imgString) {
-            if (!imgString) return 'image_4e8ca8.png';
+            if (!imgString) return 'https://ui-avatars.com/api/?name=User&background=0D8ABC&color=fff';
             if (imgString.startsWith('http')) return imgString;
             
             let basePath = window.location.origin + window.location.pathname;
@@ -296,22 +210,15 @@
             return `${basePath}/${imgString}`;
         }
 
-        function formatNumber(num) {
-            return num.toLocaleString('en-US');
-        }
+        function formatNumber(num) { return num.toLocaleString('en-US'); }
 
         async function init() {
             try {
-                const response = await fetch('data.json?t=' + new Date().getTime());
+                const response = await fetch('data.json?t=' + Date.now());
                 globalDataset = await response.json();
                 sortedDates = Object.keys(globalDataset).sort((a, b) => b.localeCompare(a));
-                
-                if (sortedDates.length > 0) {
-                    updateDashboard(activeDaysBack, document.querySelector('.toggle-btn.active'));
-                }
-            } catch (error) {
-                console.error('Error fetching data.json:', error);
-            }
+                if (sortedDates.length > 0) updateDashboard(activeDaysBack, document.querySelector('.toggle-btn.active'));
+            } catch (error) { console.error('Error fetching data:', error); }
         }
 
         function updateDashboard(daysBack, btnElement) {
@@ -324,21 +231,13 @@
             const latestDate = sortedDates[0];
             const targetIndex = Math.min(daysBack, sortedDates.length - 1);
             const pastDate = sortedDates[targetIndex];
-            const latestData = globalDataset[latestDate];
-            const pastData = globalDataset[pastDate];
-
+            
             let leaderArray = [];
-
-            for (const [username, currentMetrics] of Object.entries(latestData)) {
+            for (const [username, currentMetrics] of Object.entries(globalDataset[latestDate])) {
                 const currentCount = currentMetrics.count;
-                const pastCount = (pastData && pastData[username]) ? pastData[username].count : currentCount;
-                const growth = currentCount - pastCount;
-
+                const pastCount = (globalDataset[pastDate] && globalDataset[pastDate][username]) ? globalDataset[pastDate][username].count : currentCount;
                 leaderArray.push({
-                    username,
-                    currentCount,
-                    growth,
-                    img: resolveImagePath(currentMetrics.img)
+                    username, currentCount, growth: currentCount - pastCount, img: resolveImagePath(currentMetrics.img)
                 });
             }
 
@@ -348,19 +247,19 @@
 
         function renderCards(leaderArray) {
             const board = document.getElementById('leaderboard');
-            const cardHeight = 95; 
-            const gapX = 30; // Horizontal gap between columns
-            const gapY = 16; // Vertical gap between rows
+            const cardHeight = 110; 
+            const gapX = 40; 
+            const gapY = 20; 
+
+            // Calculate grid dimensions dynamically to allow scrolling logic
+            const rows = Math.ceil(leaderArray.length / 2);
+            board.style.height = `${rows * (cardHeight + gapY)}px`;
 
             leaderArray.forEach((user, index) => {
                 let card = document.getElementById(`card-${user.username}`);
-                
                 const isHighGrowth = user.growth >= SIGNIFICANT_GROWTH_THRESHOLD;
                 const isLoss = user.growth < 0;
-                const growthText = user.growth > 0 ? `+${formatNumber(user.growth)}` : formatNumber(user.growth);
-                const tagClass = isLoss ? 'down' : 'up';
-                const arrow = isLoss ? '▼' : '▲';
-
+                
                 if (!card) {
                     card = document.createElement('div');
                     card.id = `card-${user.username}`;
@@ -368,14 +267,10 @@
                     board.appendChild(card);
                 }
 
-                // 2-Column Matrix Calculation
                 const col = index % 2; 
                 const row = Math.floor(index / 2);
-                
-                // Set width to 50% minus half the gap
                 card.style.width = `calc(50% - ${gapX / 2}px)`;
                 
-                // Dynamically translate to Left (col 0) or Right (col 1)
                 const xOffset = col === 0 ? '0px' : `calc(100% + ${gapX}px)`;
                 const yOffset = `${row * (cardHeight + gapY)}px`;
                 
@@ -384,15 +279,11 @@
 
                 card.innerHTML = `
                     <div class="rank">#${index + 1}</div>
-                    <img class="avatar" src="${user.img}" alt="${user.username}" onerror="this.src='image_4e8ca8.png'">
-                    <div class="info">
-                        <div class="username">@${user.username}</div>
-                    </div>
+                    <img class="avatar" src="${user.img}" alt="${user.username}" onerror="this.src='https://ui-avatars.com/api/?name=${user.username}&background=0D8ABC&color=fff'">
+                    <div class="info"><div class="username">@${user.username}</div></div>
                     <div class="metrics">
                         <div class="count">${formatNumber(user.currentCount)}</div>
-                        <div class="change-tag ${tagClass}">
-                            ${arrow} ${growthText}
-                        </div>
+                        <div class="change-tag ${isLoss ? 'down' : 'up'}">${isLoss ? '▼' : '▲'} ${formatNumber(Math.abs(user.growth))}</div>
                     </div>
                 `;
             });
