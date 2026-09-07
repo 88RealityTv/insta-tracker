@@ -3,250 +3,322 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>StreamStats Live - Shorts Vertical</title>
+    <title>Live Shorts Tracker</title>
     <style>
         :root {
-            --bg-deep: #050507;
-            --bg-card: rgba(18, 18, 26, 0.85);
-            --neon-pink: #ff007f;
+            --bg-dark: #09090b;
+            --card-bg: rgba(18, 18, 26, 0.6);
+            --neon-green: #00ff9d;
+            --neon-red: #ff003c;
             --neon-cyan: #00f3ff;
-            --loss-red: #ff003c;
-            --gain-green: #00ff88;
             --text-main: #ffffff;
-            --text-muted: #888899;
+            --text-dim: #a1a1aa;
         }
 
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: system-ui, sans-serif; }
-
         body {
-            background-color: var(--bg-deep);
+            margin: 0;
+            padding: 0;
+            background-color: var(--bg-dark);
             color: var(--text-main);
-            width: 1080px;
-            min-height: 1920px;
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             overflow-y: auto;
             overflow-x: hidden;
             display: flex;
-            flex-direction: column;
-            padding: 60px 40px;
-            background: radial-gradient(circle at 50% 20%, rgba(0, 255, 136, 0.05), transparent 50%), var(--bg-deep);
+            justify-content: center;
         }
 
-        ::-webkit-scrollbar { width: 10px; }
-        ::-webkit-scrollbar-track { background: transparent; }
-        ::-webkit-scrollbar-thumb { background: var(--neon-cyan); border-radius: 5px; }
-
-        header {
+        .container {
             width: 100%;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            margin-bottom: 50px;
-            gap: 30px;
-            z-index: 10;
+            max-width: 500px; /* Optimal for Shorts 1080x1920 ratio when scaled */
+            padding: 30px 20px;
+            box-sizing: border-box;
         }
 
         h1 {
-            font-size: 4rem;
-            font-weight: 900;
-            text-transform: uppercase;
-            text-shadow: 0 0 30px rgba(0, 243, 255, 0.6);
             text-align: center;
+            font-weight: 900;
+            font-size: 2.2rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-bottom: 25px;
+            color: var(--neon-cyan);
+            text-shadow: 0 0 15px rgba(0, 243, 255, 0.4);
         }
 
-        .slider-wrapper {
-            background: rgba(10, 10, 15, 0.9);
-            padding: 20px 40px;
-            border-radius: 20px;
-            border: 2px solid rgba(0, 243, 255, 0.4);
-            width: 80%;
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
-        }
-
-        .slider-labels {
+        /* Time Range Controls */
+        .controls {
             display: flex;
             justify-content: space-between;
-            font-weight: 800;
-            font-size: 1.5rem;
-            color: var(--text-muted);
-            text-transform: uppercase;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 30px;
+            padding: 5px;
+            margin-bottom: 30px;
+            backdrop-filter: blur(10px);
         }
 
-        .slider-labels span.active { color: var(--neon-cyan); text-shadow: 0 0 15px var(--neon-cyan); }
-        
-        input[type=range] { -webkit-appearance: none; width: 100%; background: rgba(255, 255, 255, 0.1); height: 12px; border-radius: 6px; outline: none; cursor: pointer; }
-        input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 35px; height: 35px; border-radius: 50%; background: var(--neon-cyan); box-shadow: 0 0 25px var(--neon-cyan); cursor: pointer; }
+        .controls button {
+            flex: 1;
+            background: transparent;
+            border: none;
+            color: var(--text-dim);
+            font-weight: 800;
+            padding: 12px 0;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
 
-        #leaderboard { position: relative; width: 100%; transition: height 0.4s ease; }
+        .controls button.active {
+            background: var(--neon-cyan);
+            color: var(--bg-dark);
+            box-shadow: 0 0 15px rgba(0, 243, 255, 0.5);
+        }
+
+        /* Leaderboard List */
+        .leaderboard {
+            display: flex;
+            flex-direction: column;
+            gap: 16px; /* Spacing between rows */
+        }
 
         .card {
-            position: absolute;
-            width: 100%;
-            height: 140px;
-            background: var(--bg-card);
-            backdrop-filter: blur(20px);
-            border: 2px solid rgba(0, 243, 255, 0.2);
-            border-radius: 20px;
+            position: relative;
             display: flex;
             align-items: center;
-            padding: 0 40px;
-            transition: transform 0.8s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.3s;
-            will-change: transform;
+            background: var(--card-bg);
+            border: 1px solid rgba(255,255,255,0.05);
+            border-radius: 16px;
+            padding: 15px 20px;
+            backdrop-filter: blur(12px);
+            transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            box-sizing: border-box;
+            view-transition-name: var(--vt-name);
         }
 
-        @keyframes pulse-glow-green {
-            0% { box-shadow: 0 0 25px rgba(0, 255, 136, 0.4); border-color: rgba(0, 255, 136, 0.5); }
-            50% { box-shadow: 0 0 50px rgba(0, 255, 136, 0.8); border-color: var(--gain-green); }
-            100% { box-shadow: 0 0 25px rgba(0, 255, 136, 0.4); border-color: rgba(0, 255, 136, 0.5); }
+        /* Position Marker (Top Right) */
+        .rank-marker {
+            position: absolute;
+            top: 10px;
+            right: 15px;
+            font-size: 0.85rem;
+            font-weight: 900;
+            padding: 2px 8px;
+            border-radius: 10px;
+            background: rgba(0,0,0,0.5);
         }
 
-        @keyframes pulse-loss { 0% { box-shadow: 0 0 20px rgba(255, 0, 60, 0.4); border-color: rgba(255, 0, 60, 0.5); } 100% { box-shadow: 0 0 40px rgba(255, 0, 60, 0.8); border-color: var(--loss-red); } }
+        .marker-up { color: var(--neon-green); }
+        .marker-down { color: var(--neon-red); }
+        .marker-none { color: var(--text-dim); }
 
-        .card.growth-up { animation: pulse-glow-green 2s infinite; z-index: 5; background: rgba(0, 255, 136, 0.05); }
-        .card.growth-down { animation: pulse-loss 1.5s infinite alternate; background: rgba(255, 0, 60, 0.05); }
+        /* Animations for Growth/Loss */
+        .glow-pulse {
+            animation: pulse-green 2s infinite;
+        }
+        
+        .loss-border {
+            border-color: rgba(255, 0, 60, 0.5);
+            box-shadow: 0 0 15px rgba(255, 0, 60, 0.15);
+        }
 
-        .rank { font-size: 3rem; font-weight: 900; color: rgba(255, 255, 255, 0.3); width: 90px; }
-        .avatar { width: 90px; height: 90px; border-radius: 50%; border: 3px solid var(--neon-cyan); margin-right: 30px; object-fit: cover; }
-        .info { flex-grow: 1; }
-        .username { font-size: 2.2rem; font-weight: 900; }
-        
-        .metrics { display: flex; flex-direction: column; align-items: flex-end; gap: 10px; }
-        .count { font-size: 3.5rem; font-weight: 900; font-variant-numeric: tabular-nums; }
-        
+        @keyframes pulse-green {
+            0% { box-shadow: 0 0 5px rgba(0,255,157,0.2); border-color: rgba(0,255,157, 0.4); }
+            50% { box-shadow: 0 0 20px rgba(0,255,157,0.6); border-color: rgba(0,255,157, 1); }
+            100% { box-shadow: 0 0 5px rgba(0,255,157,0.2); border-color: rgba(0,255,157, 0.4); }
+        }
+
+        .rank {
+            font-size: 1.8rem;
+            font-weight: 900;
+            color: rgba(255,255,255,0.2);
+            margin-right: 15px;
+            width: 40px;
+        }
+
+        .avatar {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid var(--neon-cyan);
+            margin-right: 15px;
+        }
+
+        .info {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .username {
+            font-size: 1.2rem;
+            font-weight: 800;
+            margin: 0 0 5px 0;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+        }
+
+        .stats {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .count {
+            font-size: 1.5rem;
+            font-weight: 900;
+            letter-spacing: 1px;
+        }
+
         .change-tag {
-            font-size: 1.8rem; font-weight: 900; padding: 10px 25px; border-radius: 12px;
-            display: flex; align-items: center; gap: 10px;
+            font-size: 0.9rem;
+            font-weight: 800;
+            padding: 4px 8px;
+            border-radius: 6px;
         }
-        .pct-tag { font-size: 1.4rem; font-weight: 700; color: var(--text-muted); }
-        .change-tag.up { background: rgba(0, 255, 136, 0.15); color: var(--gain-green); border: 1px solid rgba(0, 255, 136, 0.5); }
-        .change-tag.down { background: rgba(255, 0, 60, 0.2); color: var(--loss-red); border: 1px solid var(--loss-red); }
+
+        .change-up {
+            background: rgba(0, 255, 157, 0.1);
+            color: var(--neon-green);
+        }
+
+        .change-down {
+            background: rgba(255, 0, 60, 0.1);
+            color: var(--neon-red);
+        }
     </style>
 </head>
 <body>
-    <header>
-        <h1>Live <span style="color: var(--neon-cyan);">Shorts Tracker</span></h1>
-        <div class="slider-wrapper">
-            <div class="slider-labels">
-                <span id="label-0" class="active">24H</span>
-                <span id="label-1">3D</span>
-                <span id="label-2">7D</span>
-            </div>
-            <input type="range" id="timeSlider" min="0" max="2" step="1" value="0">
+    <div class="container">
+        <h1>LIVE SHORTS TRACKER</h1>
+        
+        <div class="controls">
+            <button class="active" onclick="setTimeRange(1, this)">24H</button>
+            <button onclick="setTimeRange(3, this)">3D</button>
+            <button onclick="setTimeRange(7, this)">7D</button>
         </div>
-    </header>
 
-    <div id="leaderboard"></div>
+        <div class="leaderboard" id="leaderboard"></div>
+    </div>
 
     <script>
-        let globalDataset = {};
-        let sortedDates = [];
-        const sliderMap = { 0: 1, 1: 3, 2: 7 };
-
-        function resolveImagePath(imgString) {
-            if (!imgString) return 'image_59dec3.jpg';
-            if (imgString.startsWith('http')) return imgString;
-            let basePath = window.location.origin + window.location.pathname;
-            if (basePath.endsWith('.html')) basePath = basePath.substring(0, basePath.lastIndexOf('/'));
-            if (basePath.endsWith('/')) basePath = basePath.slice(0, -1);
-            if (imgString.startsWith('/')) imgString = imgString.substring(1);
-            return `${basePath}/${imgString}`;
-        }
-
-        function formatNumber(num) { return Math.floor(num).toLocaleString('en-US'); }
-
-        function animateValue(element, start, end, duration) {
-            if (start === end) { element.innerHTML = formatNumber(end); return; }
-            let startTimestamp = null;
-            const step = (timestamp) => {
-                if (!startTimestamp) startTimestamp = timestamp;
-                const progress = Math.min((timestamp - startTimestamp) / duration, 1);
-                const current = (1 - Math.pow(1 - progress, 3)) * (end - start) + start;
-                element.innerHTML = formatNumber(current);
-                if (progress < 1) window.requestAnimationFrame(step);
-                else element.innerHTML = formatNumber(end);
-            };
-            window.requestAnimationFrame(step);
-        }
+        let appData = {};
 
         async function init() {
             try {
-                const response = await fetch('data.json?t=' + Date.now());
-                globalDataset = await response.json();
-                sortedDates = Object.keys(globalDataset).sort((a, b) => b.localeCompare(a));
-                
-                if (sortedDates.length > 0) {
-                    document.getElementById('timeSlider').addEventListener('input', (e) => {
-                        const val = parseInt(e.target.value);
-                        updateDashboard(sliderMap[val]);
-                        document.querySelectorAll('.slider-labels span').forEach((el, idx) => el.className = idx === val ? 'active' : '');
-                    });
-                    updateDashboard(1, true);
-                }
-            } catch (error) { console.error('Error fetching data:', error); }
-        }
-
-        function updateDashboard(daysBack, isInitialLoad = false) {
-            const latestDate = sortedDates[0];
-            const pastDate = sortedDates[Math.min(daysBack, sortedDates.length - 1)];
-            
-            let leaderArray = [];
-            for (const [username, currentMetrics] of Object.entries(globalDataset[latestDate])) {
-                const currentCount = currentMetrics.count;
-                const pastCount = (globalDataset[pastDate] && globalDataset[pastDate][username]) ? globalDataset[pastDate][username].count : currentCount;
-                const growth = currentCount - pastCount;
-                leaderArray.push({ username, currentCount, pastCount, growth, pct: pastCount === 0 ? 0 : (growth / pastCount) * 100, img: resolveImagePath(currentMetrics.img) });
+                const response = await fetch('data.json');
+                appData = await response.json();
+                renderData(1);
+            } catch (err) {
+                console.error("Failed to load data.json", err);
             }
-            leaderArray.sort((a, b) => b.currentCount - a.currentCount);
-            renderCards(leaderArray, isInitialLoad);
         }
 
-        function renderCards(leaderArray, isInitialLoad) {
-            const board = document.getElementById('leaderboard');
-            const cardHeight = 140, gapY = 25; 
-            board.style.height = `${leaderArray.length * (cardHeight + gapY)}px`;
+        function setTimeRange(days, btnElement) {
+            document.querySelectorAll('.controls button').forEach(btn => btn.classList.remove('active'));
+            btnElement.classList.add('active');
+            
+            // Use View Transitions API for smooth reordering if supported
+            if (document.startViewTransition) {
+                document.startViewTransition(() => renderData(days));
+            } else {
+                renderData(days);
+            }
+        }
 
-            leaderArray.forEach((user, index) => {
-                let card = document.getElementById(`card-${user.username}`);
-                const isGrowth = user.growth > 0, isLoss = user.growth < 0;
+        function renderData(daysBack) {
+            const dates = Object.keys(appData).sort((a, b) => new Date(b) - new Date(a));
+            if (dates.length === 0) return;
+
+            const latestDate = dates[0];
+            const pastDate = dates[Math.min(daysBack, dates.length - 1)];
+
+            const latestData = appData[latestDate];
+            const pastData = appData[pastDate] || {};
+
+            // Calculate current rankings
+            const currentRanks = Object.entries(latestData)
+                .sort((a, b) => b[1].count - a[1].count)
+                .map((entry, index) => ({ username: entry[0], rank: index + 1, ...entry[1] }));
+
+            // Calculate past rankings
+            const pastRanks = Object.entries(pastData)
+                .sort((a, b) => b[1].count - a[1].count)
+                .map((entry, index) => ({ username: entry[0], rank: index + 1 }));
+
+            const pastRankMap = {};
+            pastRanks.forEach(u => pastRankMap[u.username] = u.rank);
+
+            const container = document.getElementById('leaderboard');
+            container.innerHTML = '';
+
+            // Safe base URL resolution for GitHub pages
+            const baseUrl = window.location.href.substring(0, window.location.href.lastIndexOf('/') + 1);
+
+            currentRanks.forEach(user => {
+                const pastCount = pastData[user.username] ? pastData[user.username].count : user.count;
+                const pastRank = pastRankMap[user.username] || user.rank;
                 
-                if (!card) {
-                    card = document.createElement('div');
-                    card.id = `card-${user.username}`;
-                    card.className = 'card';
-                    card.dataset.prevCount = user.currentCount;
-                    card.innerHTML = `<div class="rank"></div><img class="avatar" src="" onerror="this.src='image_59dec3.jpg'"><div class="info"><div class="username"></div></div><div class="metrics"><div class="count"></div><div class="change-tag"></div><div class="pct-tag"></div></div>`;
-                    board.appendChild(card);
-                    if (isInitialLoad) {
-                        card.style.transform = `translateY(150vh)`;
-                        card.style.opacity = '0';
-                        void card.offsetWidth;
-                        card.style.transition = `transform 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) ${index * 0.08}s, opacity 0.8s ease ${index * 0.08}s`;
-                    }
-                } else if (!isInitialLoad) {
-                    card.style.transition = `transform 0.8s cubic-bezier(0.34, 1.56, 0.64, 1)`;
+                const growth = user.count - pastCount;
+                const rankDiff = pastRank - user.rank; // Positive means they moved up (e.g., Rank 3 to Rank 1 = +2)
+
+                // Formatting values
+                const formattedCount = user.count.toLocaleString();
+                const formattedGrowth = Math.abs(growth).toLocaleString();
+                
+                // Determine styling classes
+                let cardClass = 'card';
+                let tagClass = 'change-tag';
+                let changeIcon = '';
+                
+                if (growth > 0) {
+                    cardClass += ' glow-pulse';
+                    tagClass += ' change-up';
+                    changeIcon = '▲';
+                } else if (growth < 0) {
+                    cardClass += ' loss-border';
+                    tagClass += ' change-down';
+                    changeIcon = '▼';
                 }
 
-                card.style.opacity = '1';
-                card.style.transform = `translateY(${index * (cardHeight + gapY)}px)`;
-                card.className = `card ${isGrowth ? 'growth-up' : (isLoss ? 'growth-down' : '')}`;
+                // Determine Rank Marker
+                let markerClass = 'marker-none';
+                let markerText = '-';
+                if (rankDiff > 0) {
+                    markerClass = 'marker-up';
+                    markerText = `▲ ${rankDiff}`;
+                } else if (rankDiff < 0) {
+                    markerClass = 'marker-down';
+                    markerText = `▼ ${Math.abs(rankDiff)}`;
+                }
 
-                card.querySelector('.rank').innerText = `#${index + 1}`;
-                card.querySelector('.avatar').src = user.img;
-                card.querySelector('.username').innerText = user.username;
+                // Parse image (handles both external links and local relative GH Pages links)
+                const imgUrl = user.img.startsWith('http') ? user.img : new URL(user.img, baseUrl).href;
+
+                // Build Element
+                const el = document.createElement('div');
+                el.className = cardClass;
+                el.style.setProperty('--vt-name', `card-${user.username.replace(/[^a-zA-Z0-9]/g, '')}`);
                 
-                animateValue(card.querySelector('.count'), parseInt(card.dataset.prevCount) || user.currentCount, user.currentCount, 800);
-                card.dataset.prevCount = user.currentCount;
-
-                const changeTag = card.querySelector('.change-tag');
-                changeTag.className = `change-tag ${isLoss ? 'down' : 'up'}`;
-                changeTag.innerText = `${isLoss ? '▼' : '▲'} ${formatNumber(Math.abs(user.growth))}`;
-                card.querySelector('.pct-tag').innerText = `${isLoss ? '-' : '+'}${Math.abs(user.pct).toFixed(2)}%`;
+                el.innerHTML = `
+                    <div class="rank-marker ${markerClass}">${markerText}</div>
+                    <div class="rank">#${user.rank}</div>
+                    <img src="${imgUrl}" alt="${user.username}" class="avatar">
+                    <div class="info">
+                        <p class="username">${user.username}</p>
+                        <div class="stats">
+                            <span class="count">${formattedCount}</span>
+                            ${growth !== 0 ? `<span class="${tagClass}">${changeIcon} ${formattedGrowth}</span>` : ''}
+                        </div>
+                    </div>
+                `;
+                container.appendChild(el);
             });
         }
 
-        window.addEventListener('DOMContentLoaded', init);
-        setInterval(init, 60000); 
+        // Boot
+        init();
     </script>
 </body>
 </html>
