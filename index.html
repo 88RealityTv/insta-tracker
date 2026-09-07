@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>StreamStats Live - Dynamic Broadcast</title>
+    <title>StreamStats Live - Main Broadcast</title>
     <style>
         :root {
             --bg-deep: #050507;
@@ -64,7 +64,6 @@
             gap: 20px;
         }
 
-        /* Custom Slider Styling */
         .slider-wrapper {
             background: rgba(10, 10, 15, 0.9);
             padding: 15px 30px;
@@ -119,9 +118,7 @@
             transition: transform 0.1s;
         }
 
-        input[type=range]::-webkit-slider-thumb:hover {
-            transform: scale(1.2);
-        }
+        input[type=range]::-webkit-slider-thumb:hover { transform: scale(1.2); }
 
         #leaderboard {
             position: relative;
@@ -248,9 +245,7 @@
 <body>
 
     <header>
-        <h1>
-            Live <span style="color: var(--neon-cyan);">Leaderboard</span>
-        </h1>
+        <h1>Live <span style="color: var(--neon-cyan);">Leaderboard</span></h1>
         <div class="slider-wrapper">
             <div class="slider-labels">
                 <span id="label-0" class="active">24 Hours</span>
@@ -267,22 +262,22 @@
         let globalDataset = {};
         let sortedDates = [];
         let currentLeaderArray = [];
-        let activeDaysBack = 1;
-        const sliderMap = { 0: 1, 1: 3, 2: 7 }; // Maps slider value to days
+        const sliderMap = { 0: 1, 1: 3, 2: 7 };
 
-        // Handle native relative path resolution for GitHub Pages images/ folder
         function resolveImagePath(imgString) {
-            if (!imgString) return 'image_4e8ca8.png';
+            if (!imgString) return 'image_59dec3.jpg';
             if (imgString.startsWith('http')) return imgString;
+            
+            let basePath = window.location.origin + window.location.pathname;
+            if (basePath.endsWith('.html')) basePath = basePath.substring(0, basePath.lastIndexOf('/'));
+            if (basePath.endsWith('/')) basePath = basePath.slice(0, -1);
             if (imgString.startsWith('/')) imgString = imgString.substring(1);
-            return imgString;
+            
+            return `${basePath}/${imgString}`;
         }
 
-        function formatNumber(num) { 
-            return Math.floor(num).toLocaleString('en-US'); 
-        }
+        function formatNumber(num) { return Math.floor(num).toLocaleString('en-US'); }
 
-        // Animate counting up/down for the main follower count
         function animateValue(element, start, end, duration) {
             if (start === end) {
                 element.innerHTML = formatNumber(end);
@@ -292,15 +287,11 @@
             const step = (timestamp) => {
                 if (!startTimestamp) startTimestamp = timestamp;
                 const progress = Math.min((timestamp - startTimestamp) / duration, 1);
-                // Ease out cubic
                 const easeProgress = 1 - Math.pow(1 - progress, 3);
                 const current = (easeProgress * (end - start) + start);
                 element.innerHTML = formatNumber(current);
-                if (progress < 1) {
-                    window.requestAnimationFrame(step);
-                } else {
-                    element.innerHTML = formatNumber(end);
-                }
+                if (progress < 1) window.requestAnimationFrame(step);
+                else element.innerHTML = formatNumber(end);
             };
             window.requestAnimationFrame(step);
         }
@@ -315,23 +306,16 @@
                     document.getElementById('timeSlider').addEventListener('input', (e) => {
                         const val = parseInt(e.target.value);
                         updateDashboard(sliderMap[val]);
-                        
-                        // Update Slider UI Labels
                         document.querySelectorAll('.slider-labels span').forEach((el, idx) => {
                             el.className = idx === val ? 'active' : '';
                         });
                     });
-                    
-                    updateDashboard(activeDaysBack, true); // true = initial load animation
+                    updateDashboard(1, true); 
                 }
-            } catch (error) { 
-                console.error('Error fetching data:', error); 
-            }
+            } catch (error) { console.error('Error fetching data:', error); }
         }
 
         function updateDashboard(daysBack, isInitialLoad = false) {
-            activeDaysBack = daysBack;
-
             const latestDate = sortedDates[0];
             const targetIndex = Math.min(daysBack, sortedDates.length - 1);
             const pastDate = sortedDates[targetIndex];
@@ -348,25 +332,19 @@
                 });
             }
 
-            // Strictly sort by absolute total count descending
             leaderArray.sort((a, b) => b.currentCount - a.currentCount);
             currentLeaderArray = leaderArray;
-            
             renderCards(leaderArray, isInitialLoad);
         }
 
         function renderCards(leaderArray, isInitialLoad) {
             const board = document.getElementById('leaderboard');
             const cardHeight = 110; 
-            const gapX = 30; // 30px gap horizontally
-            const gapY = 20; // 20px gap vertically
+            const gapX = 30; 
+            const gapY = 20; 
 
-            // Force reflow and dynamic height calculation for 2 columns
             const rows = Math.ceil(leaderArray.length / 2);
             board.style.height = `${rows * (cardHeight + gapY)}px`;
-            
-            // Get current container width for dynamic columns on resize
-            const containerWidth = board.offsetWidth;
 
             leaderArray.forEach((user, index) => {
                 let card = document.getElementById(`card-${user.username}`);
@@ -381,11 +359,11 @@
                     card = document.createElement('div');
                     card.id = `card-${user.username}`;
                     card.className = 'card';
-                    card.dataset.prevCount = user.currentCount; // Store for animation
+                    card.dataset.prevCount = user.currentCount; 
                     
                     card.innerHTML = `
                         <div class="rank"></div>
-                        <img class="avatar" src="" alt="" onerror="this.src='image_4e8ca8.png'">
+                        <img class="avatar" src="" alt="" onerror="this.src='image_59dec3.jpg'">
                         <div class="info"><div class="username"></div></div>
                         <div class="metrics">
                             <div class="count"></div>
@@ -398,7 +376,6 @@
                     board.appendChild(card);
                 }
 
-                // Matrix calculation dynamically tied to layout width
                 const col = index % 2; 
                 const row = Math.floor(index / 2);
                 card.style.width = `calc(50% - ${gapX / 2}px)`;
@@ -409,7 +386,7 @@
                 if (isNewCard && isInitialLoad) {
                     card.style.transform = `translate(${xOffset}, 150vh)`;
                     card.style.opacity = '0';
-                    void card.offsetWidth; // Trigger reflow
+                    void card.offsetWidth; 
                     card.style.transition = `transform 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) ${index * 0.08}s, opacity 0.8s ease ${index * 0.08}s, box-shadow 0.3s`;
                 } else if (!isInitialLoad) {
                     card.style.transition = `transform 0.8s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.3s`;
@@ -417,37 +394,25 @@
 
                 card.style.opacity = '1';
                 card.style.transform = `translate(${xOffset}, ${yOffset})`;
-                
-                // Assign glow colors based on growth state
                 card.className = `card ${isGrowth ? 'growth-up' : (isLoss ? 'growth-down' : '')}`;
 
-                // Update internal DOM elements
                 card.querySelector('.rank').innerText = `#${index + 1}`;
                 card.querySelector('.avatar').src = user.img;
-                card.querySelector('.username').innerText = user.username; // @ Removed
+                card.querySelector('.username').innerText = user.username; 
 
-                // Animate Numbers
                 const countEl = card.querySelector('.count');
                 const prevCount = parseInt(card.dataset.prevCount) || user.currentCount;
                 animateValue(countEl, prevCount, user.currentCount, 800);
                 card.dataset.prevCount = user.currentCount;
 
-                // Update Tags
                 const changeTag = card.querySelector('.change-tag');
                 changeTag.className = `change-tag ${isLoss ? 'down' : 'up'}`;
                 changeTag.innerText = `${isLoss ? '▼' : '▲'} ${formatNumber(Math.abs(user.growth))}`;
-                
                 card.querySelector('.pct-tag').innerText = `${isLoss ? '-' : '+'}${pctFormatted}`;
             });
         }
 
-        // Handle dynamic browser resizes to keep absolute matrix correctly positioned
-        window.addEventListener('resize', () => {
-            if(currentLeaderArray.length > 0) {
-                renderCards(currentLeaderArray, false);
-            }
-        });
-
+        window.addEventListener('resize', () => { if(currentLeaderArray.length > 0) renderCards(currentLeaderArray, false); });
         window.addEventListener('DOMContentLoaded', init);
         setInterval(init, 60000); 
     </script>
