@@ -5,73 +5,143 @@
     <title>OBS Horizontal Overlay Dashboard</title>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; }
-        body { background: #0f0f12; color: #ffffff; font-family: system-ui, sans-serif; padding: 25px; }
-        h1 { text-align: center; margin-bottom: 25px; font-size: 26px; color: #f7fafc; letter-spacing: 1px; }
+        body { 
+            background: #0f0f12; 
+            color: #ffffff; 
+            font-family: system-ui, sans-serif; 
+            padding: 25px; 
+            overflow: hidden;
+        }
+        
+        /* Interactive Toggle Switch Styling */
+        .controls-container {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 25px;
+        }
+        .toggle-wrapper {
+            background: #1a1a24;
+            padding: 6px;
+            border-radius: 30px;
+            display: inline-flex;
+            border: 1px solid #2d2d3d;
+            position: relative;
+        }
+        .toggle-btn {
+            background: transparent;
+            border: none;
+            color: #a0aec0;
+            padding: 8px 24px;
+            font-size: 14px;
+            font-weight: 700;
+            cursor: pointer;
+            border-radius: 20px;
+            transition: all 0.2s ease;
+            z-index: 2;
+        }
+        .toggle-btn.active {
+            color: #ffffff;
+            background: #e1306c;
+            box-shadow: 0 2px 10px rgba(225, 48, 108, 0.4);
+        }
+
         .grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
         .card { 
             background: #1a1a24; padding: 16px; border-radius: 12px; 
             border: 1px solid #2d2d3d; display: flex; align-items: center; gap: 15px; 
         }
         .profile-img { width: 55px; height: 55px; border-radius: 50%; border: 2px solid #e1306c; object-fit: cover; }
-        .info { flex-grow: 1; }
-        .name { font-size: 16px; font-weight: 700; color: #a0aec0; text-transform: lowercase; }
-        .name::before { content: "@"; color: #e1306c; }
-        .count { font-size: 24px; font-weight: 800; margin: 2px 0 8px 0; }
-        .stat-row { display: flex; justify-content: space-between; font-size: 13px; padding-top: 3px; border-top: 1px solid #252533; }
-        .stat-label { color: #637b94; }
+        .info { flex-grow: 1; min-width: 0; }
+        .name { font-size: 16px; font-weight: 700; color: #e2e8f0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .count { font-size: 24px; font-weight: 800; margin: 2px 0 6px 0; color: #ffffff; }
+        .stat-row { display: flex; justify-content: space-between; font-size: 13px; padding-top: 5px; border-top: 1px solid #252533; }
+        .stat-label { color: #637b94; font-weight: 500; }
         .up { color: #4caf50; font-weight: 700; }
         .down { color: #f44336; font-weight: 700; }
         .neutral { color: #718096; }
     </style>
 </head>
 <body>
-    <h1>📊 INSTAGRAM TRACKER OVERLAY</h1>
+
+    <div class="controls-container">
+        <div class="toggle-wrapper">
+            <button class="toggle-btn active" onclick="changeRange(1, this)">24 Hours</button>
+            <button class="toggle-btn" onclick="changeRange(3, this)">3 Days</button>
+            <button class="toggle-btn" onclick="changeRange(7, this)">7 Days</button>
+        </div>
+    </div>
+
     <div class="grid" id="dashboard">Loading stats...</div>
 
     <script>
-        function formatNum(n) { return n ? n.toLocaleString() : 'N/A'; }
+        let globalData = {};
+        let currentDaysOffset = 1;
+
+        function formatNum(n) { return n ? n.toLocaleString() : '0'; }
+        
         function getTrendHTML(today, past) {
-            if (!today || !past) return `<span class="neutral">--</span>`;
+            if (today === undefined || past === undefined) return `<span class="neutral">--</span>`;
             const diff = today - past;
             if (diff > 0) return `<span class="up">▲ +${formatNum(diff)}</span>`;
             if (diff < 0) return `<span class="down">▼ ${formatNum(diff)}</span>`;
             return `<span class="neutral">0</span>`;
         }
 
+        function changeRange(days, element) {
+            document.querySelectorAll('.toggle-btn').forEach(btn => btn.classList.remove('active'));
+            element.classList.add('active');
+            currentDaysOffset = days;
+            renderDashboard();
+        }
+
+        function renderDashboard() {
+            const dates = Object.keys(globalData).sort();
+            if (dates.length === 0) return;
+
+            const todayIndex = dates.length - 1;
+            const pastIndex = Math.max(0, todayIndex - currentDaysOffset);
+
+            const todayDate = dates[todayIndex];
+            const pastDate = dates[pastIndex];
+
+            const tData = globalData[todayDate];
+            const pData = (pastIndex !== todayIndex) ? globalData[pastDate] : {};
+            
+            const container = document.getElementById('dashboard');
+            container.innerHTML = '';
+
+            const rangeLabels = { 1: "24h Growth", 3: "3d Growth", 7: "7d Growth" };
+
+            for (const user in tData) {
+                const cur = tData[user].count;
+                const imgUrl = tData[user].img || 'https://placeholder.com';
+                const pastVal = pData[user] ? pData[user].count : undefined;
+
+                const card = document.createElement('div');
+                card.className = 'card';
+                card.innerHTML = `
+                    <img class="profile-img" src="${imgUrl}" alt="${user}">
+                    <div class="info">
+                        <div class="name">${user}</div>
+                        <div class="count">${formatNum(cur)}</div>
+                        <div class="stat-row">
+                            <span class="stat-label">${rangeLabels[currentDaysOffset]}:</span> 
+                            ${getTrendHTML(cur, pastVal)}
+                        </div>
+                    </div>
+                `;
+                container.appendChild(card);
+            }
+        }
+
         async function init() {
             try {
                 const res = await fetch('data.json');
-                const data = await res.json();
-                const dates = Object.keys(data).sort();
-                
-                const today = dates[dates.length - 1];
-                const yesterday = dates[dates.length - 2] || null;
-                const weekAgo = dates[Math.max(0, dates.length - 7)] !== today ? dates[Math.max(0, dates.length - 7)] : null;
-
-                const tData = data[today], yData = yesterday ? data[yesterday] : {}, wData = weekAgo ? data[weekAgo] : {};
-                const container = document.getElementById('dashboard');
-                container.innerHTML = '';
-
-                for (const user in tData) {
-                    const cur = tData[user].count;
-                    const imgUrl = tData[user].img || 'https://placeholder.com';
-                    const yVal = yData[user] ? yData[user].count : null;
-                    const wVal = wData[user] ? wData[user].count : null;
-
-                    const card = document.createElement('div');
-                    card.className = 'card';
-                    card.innerHTML = `
-                        <img class="profile-img" src="${imgUrl}" alt="${user}">
-                        <div class="info">
-                            <div class="name">${user}</div>
-                            <div class="count">${formatNum(cur)}</div>
-                            <div class="stat-row"><span class="stat-label">24h:</span> ${getTrendHTML(cur, yVal)}</div>
-                            <div class="stat-row"><span class="stat-label">7d:</span> ${getTrendHTML(cur, wVal)}</div>
-                        </div>
-                    `;
-                    container.appendChild(card);
-                }
-            } catch (e) { container.innerText = "Error parsing data.json file."; }
+                globalData = await res.json();
+                renderDashboard();
+            } catch (e) { 
+                document.getElementById('dashboard').innerText = "Error loading data.json file."; 
+            }
         }
         init();
     </script>
