@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=1920, height=1080, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>StreamStats Live - Main Broadcast</title>
     <style>
         :root {
@@ -26,12 +26,13 @@
         body {
             background-color: var(--bg-deep);
             color: var(--text-main);
-            width: 1920px;
-            height: 1080px;
-            overflow: hidden;
+            width: 100%;
+            min-height: 100vh;
+            overflow-x: auto;
+            overflow-y: auto;
             display: flex;
             flex-direction: column;
-            padding: 50px 100px;
+            padding: 50px 5vw 100px 5vw; /* Padding on sides (5vw) and bottom (100px) */
             background: 
                 radial-gradient(circle at 10% 20%, rgba(0, 243, 255, 0.08), transparent 30%),
                 radial-gradient(circle at 90% 80%, rgba(255, 0, 127, 0.05), transparent 30%),
@@ -40,6 +41,7 @@
 
         header {
             width: 100%;
+            min-width: 900px;
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -118,6 +120,7 @@
         #leaderboard {
             position: relative;
             width: 100%;
+            min-width: 900px; /* Enforces horizontal scroll if window shrinks too much */
             flex-grow: 1;
             transition: height 0.4s ease;
         }
@@ -345,6 +348,10 @@
             const cardHeight = 120; 
             const gapX = 40; 
             const gapY = 25; 
+
+            // Calculate exact height needed for the board to enable scrolling
+            const totalRows = Math.ceil(leaderArray.length / 2);
+            board.style.height = `${totalRows * (cardHeight + gapY)}px`;
 
             const maxPos = Math.max(...posPercents, 0.01);
             const minPos = Math.min(...posPercents, 0);
