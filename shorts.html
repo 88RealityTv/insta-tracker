@@ -2,322 +2,291 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Live Shorts Tracker</title>
+    <meta name="viewport" content="width=1080, height=1920, initial-scale=1.0">
+    <title>StreamStats - Vertical</title>
     <style>
         :root {
-            --bg-dark: #09090b;
-            --card-bg: rgba(18, 18, 26, 0.6);
-            --neon-green: #00ff9d;
-            --neon-red: #ff003c;
-            --neon-cyan: #00f3ff;
+            --bg-color: #09090b;
+            --panel-bg: rgba(18, 18, 26, 0.75);
+            --pink-grad: linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%);
             --text-main: #ffffff;
-            --text-dim: #a1a1aa;
+            --text-muted: #8892b0;
+            --card-h: 160px;
+            --card-gap: 25px;
         }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: system-ui, -apple-system, sans-serif; }
 
         body {
-            margin: 0;
-            padding: 0;
-            background-color: var(--bg-dark);
+            background-color: var(--bg-color);
+            background-image: radial-gradient(circle at 50% 0%, #2a1b38 0%, transparent 60%);
             color: var(--text-main);
-            font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            overflow-y: auto;
-            overflow-x: hidden;
+            width: 1080px;
+            height: 1920px;
+            overflow: hidden;
             display: flex;
-            justify-content: center;
+            flex-direction: column;
+            padding: 80px 50px;
         }
 
-        .container {
-            width: 100%;
-            max-width: 500px; /* Optimal for Shorts 1080x1920 ratio when scaled */
-            padding: 30px 20px;
-            box-sizing: border-box;
-        }
-
-        h1 {
+        .header {
             text-align: center;
-            font-weight: 900;
-            font-size: 2.2rem;
-            text-transform: uppercase;
-            letter-spacing: 2px;
-            margin-bottom: 25px;
-            color: var(--neon-cyan);
-            text-shadow: 0 0 15px rgba(0, 243, 255, 0.4);
+            margin-bottom: 60px;
+            z-index: 10;
         }
 
-        /* Time Range Controls */
-        .controls {
-            display: flex;
-            justify-content: space-between;
-            background: rgba(255,255,255,0.05);
-            border: 1px solid rgba(255,255,255,0.1);
-            border-radius: 30px;
-            padding: 5px;
+        .title-box h1 {
+            font-size: 4.5rem;
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            background: var(--pink-grad);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
             margin-bottom: 30px;
-            backdrop-filter: blur(10px);
+        }
+
+        .controls {
+            display: inline-flex;
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(15px);
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            border-radius: 60px;
+            padding: 15px;
+            gap: 15px;
         }
 
         .controls button {
-            flex: 1;
             background: transparent;
             border: none;
-            color: var(--text-dim);
+            color: var(--text-muted);
+            font-size: 2rem;
             font-weight: 800;
-            padding: 12px 0;
-            border-radius: 25px;
+            padding: 15px 40px;
+            border-radius: 50px;
             cursor: pointer;
             transition: all 0.3s ease;
         }
 
         .controls button.active {
-            background: var(--neon-cyan);
-            color: var(--bg-dark);
-            box-shadow: 0 0 15px rgba(0, 243, 255, 0.5);
+            background: var(--text-main);
+            color: var(--bg-color);
+            box-shadow: 0 0 20px rgba(255, 255, 255, 0.6);
         }
 
-        /* Leaderboard List */
         .leaderboard {
-            display: flex;
-            flex-direction: column;
-            gap: 16px; /* Spacing between rows */
+            position: relative;
+            flex: 1;
+            width: 100%;
         }
 
         .card {
-            position: relative;
-            display: flex;
-            align-items: center;
-            background: var(--card-bg);
-            border: 1px solid rgba(255,255,255,0.05);
-            border-radius: 16px;
-            padding: 15px 20px;
-            backdrop-filter: blur(12px);
-            transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            box-sizing: border-box;
-            view-transition-name: var(--vt-name);
-        }
-
-        /* Position Marker (Top Right) */
-        .rank-marker {
             position: absolute;
-            top: 10px;
-            right: 15px;
-            font-size: 0.85rem;
-            font-weight: 900;
-            padding: 2px 8px;
-            border-radius: 10px;
-            background: rgba(0,0,0,0.5);
-        }
-
-        .marker-up { color: var(--neon-green); }
-        .marker-down { color: var(--neon-red); }
-        .marker-none { color: var(--text-dim); }
-
-        /* Animations for Growth/Loss */
-        .glow-pulse {
-            animation: pulse-green 2s infinite;
-        }
-        
-        .loss-border {
-            border-color: rgba(255, 0, 60, 0.5);
-            box-shadow: 0 0 15px rgba(255, 0, 60, 0.15);
-        }
-
-        @keyframes pulse-green {
-            0% { box-shadow: 0 0 5px rgba(0,255,157,0.2); border-color: rgba(0,255,157, 0.4); }
-            50% { box-shadow: 0 0 20px rgba(0,255,157,0.6); border-color: rgba(0,255,157, 1); }
-            100% { box-shadow: 0 0 5px rgba(0,255,157,0.2); border-color: rgba(0,255,157, 0.4); }
-        }
-
-        .rank {
-            font-size: 1.8rem;
-            font-weight: 900;
-            color: rgba(255,255,255,0.2);
-            margin-right: 15px;
-            width: 40px;
-        }
-
-        .avatar {
-            width: 60px;
-            height: 60px;
-            border-radius: 50%;
-            object-fit: cover;
-            border: 2px solid var(--neon-cyan);
-            margin-right: 15px;
-        }
-
-        .info {
-            flex-grow: 1;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-        }
-
-        .username {
-            font-size: 1.2rem;
-            font-weight: 800;
-            margin: 0 0 5px 0;
-            text-shadow: 0 2px 4px rgba(0,0,0,0.5);
-        }
-
-        .stats {
+            left: 0;
+            right: 0;
+            height: var(--card-h);
+            background: var(--panel-bg);
+            backdrop-filter: blur(20px);
+            border: 2px solid rgba(255, 255, 255, 0.05);
+            border-radius: 30px;
             display: flex;
             align-items: center;
-            justify-content: space-between;
+            padding: 0 40px;
+            transition: top 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+            overflow: visible;
         }
 
-        .count {
+        @keyframes pulseGlow {
+            0% { box-shadow: 0 0 10px var(--glow-color), inset 0 0 10px var(--glow-color); }
+            50% { box-shadow: 0 0 40px var(--glow-color), inset 0 0 20px var(--glow-color); }
+            100% { box-shadow: 0 0 10px var(--glow-color), inset 0 0 10px var(--glow-color); }
+        }
+
+        .card.active-glow {
+            border-color: var(--glow-color);
+            animation: pulseGlow 2s infinite ease-in-out;
+        }
+
+        .marker {
+            position: absolute;
+            top: -25px;
+            right: 40px;
+            background: var(--bg-color);
+            border: 3px solid var(--glow-color);
+            color: var(--text-main);
             font-size: 1.5rem;
             font-weight: 900;
+            padding: 8px 25px;
+            border-radius: 30px;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.6);
+            z-index: 5;
             letter-spacing: 1px;
         }
 
-        .change-tag {
-            font-size: 0.9rem;
+        .avatar {
+            width: 110px;
+            height: 110px;
+            border-radius: 50%;
+            border: 4px solid var(--text-muted);
+            object-fit: cover;
+            margin-right: 40px;
+        }
+
+        .info {
+            flex: 1;
+        }
+
+        .username {
+            font-size: 2.8rem;
             font-weight: 800;
-            padding: 4px 8px;
-            border-radius: 6px;
+            margin-bottom: 5px;
         }
 
-        .change-up {
-            background: rgba(0, 255, 157, 0.1);
-            color: var(--neon-green);
+        .count {
+            font-size: 2rem;
+            color: var(--text-muted);
+            font-variant-numeric: tabular-nums;
         }
 
-        .change-down {
-            background: rgba(255, 0, 60, 0.1);
-            color: var(--neon-red);
+        .change-tag {
+            font-size: 3rem;
+            font-weight: 900;
+            display: flex;
+            align-items: center;
+            font-variant-numeric: tabular-nums;
+            text-shadow: 0 0 20px rgba(0,0,0,0.8);
         }
+
     </style>
 </head>
 <body>
-    <div class="container">
-        <h1>LIVE SHORTS TRACKER</h1>
-        
-        <div class="controls">
-            <button class="active" onclick="setTimeRange(1, this)">24H</button>
-            <button onclick="setTimeRange(3, this)">3D</button>
-            <button onclick="setTimeRange(7, this)">7D</button>
+    <div class="header">
+        <div class="title-box">
+            <h1>Follower Tracker</h1>
         </div>
-
-        <div class="leaderboard" id="leaderboard"></div>
+        <div class="controls">
+            <button onclick="updateData(1)" id="btn-1">24H</button>
+            <button onclick="updateData(3)" id="btn-3" class="active">3D</button>
+            <button onclick="updateData(7)" id="btn-7">7D</button>
+        </div>
     </div>
+    <div class="leaderboard" id="leaderboard"></div>
 
     <script>
-        let appData = {};
+        let rawData = null;
+        let dates = [];
+        const cardHeight = 160;
+        const cardGap = 25;
 
         async function init() {
             try {
-                const response = await fetch('data.json');
-                appData = await response.json();
-                renderData(1);
+                const res = await fetch('data.json');
+                rawData = await res.json();
+                dates = Object.keys(rawData).sort();
+                updateData(3);
             } catch (err) {
-                console.error("Failed to load data.json", err);
+                console.error("Error loading data.json", err);
             }
         }
 
-        function setTimeRange(days, btnElement) {
-            document.querySelectorAll('.controls button').forEach(btn => btn.classList.remove('active'));
-            btnElement.classList.add('active');
+        function getAbsolutePath(path) {
+            if(path.startsWith('http')) return path;
+            const baseUrl = window.location.origin + window.location.pathname;
+            return new URL(path, baseUrl).href;
+        }
+
+        function updateData(daysAgo) {
+            document.querySelectorAll('.controls button').forEach(b => b.classList.remove('active'));
+            document.getElementById(`btn-${daysAgo}`).classList.add('active');
+
+            if (!dates.length) return;
+            const latestDate = dates[dates.length - 1];
+            const pastIndex = Math.max(0, dates.length - 1 - daysAgo);
+            const pastDate = dates[pastIndex];
+
+            const currentStats = rawData[latestDate];
+            const pastStats = rawData[pastDate];
+
+            let players = [];
+            let posPercents = [];
+            let negPercents = [];
+
+            for (const [user, data] of Object.entries(currentStats)) {
+                const currentCount = data.count;
+                const pastCount = pastStats[user] ? pastStats[user].count : currentCount;
+                const growth = currentCount - pastCount;
+                const percent = pastCount > 0 ? (growth / pastCount) * 100 : 0;
+
+                if(percent > 0) posPercents.push(percent);
+                if(percent < 0) negPercents.push(Math.abs(percent));
+
+                players.push({ user, currentCount, growth, percent, img: data.img });
+            }
+
+            players.sort((a, b) => b.growth - a.growth);
+
+            const maxPos = Math.max(...posPercents, 0.01);
+            const minPos = Math.min(...posPercents, 0);
+            const maxNeg = Math.max(...negPercents, 0.01);
+            const minNeg = Math.min(...negPercents, 0);
+
+            const board = document.getElementById('leaderboard');
             
-            // Use View Transitions API for smooth reordering if supported
-            if (document.startViewTransition) {
-                document.startViewTransition(() => renderData(days));
-            } else {
-                renderData(days);
-            }
-        }
-
-        function renderData(daysBack) {
-            const dates = Object.keys(appData).sort((a, b) => new Date(b) - new Date(a));
-            if (dates.length === 0) return;
-
-            const latestDate = dates[0];
-            const pastDate = dates[Math.min(daysBack, dates.length - 1)];
-
-            const latestData = appData[latestDate];
-            const pastData = appData[pastDate] || {};
-
-            // Calculate current rankings
-            const currentRanks = Object.entries(latestData)
-                .sort((a, b) => b[1].count - a[1].count)
-                .map((entry, index) => ({ username: entry[0], rank: index + 1, ...entry[1] }));
-
-            // Calculate past rankings
-            const pastRanks = Object.entries(pastData)
-                .sort((a, b) => b[1].count - a[1].count)
-                .map((entry, index) => ({ username: entry[0], rank: index + 1 }));
-
-            const pastRankMap = {};
-            pastRanks.forEach(u => pastRankMap[u.username] = u.rank);
-
-            const container = document.getElementById('leaderboard');
-            container.innerHTML = '';
-
-            // Safe base URL resolution for GitHub pages
-            const baseUrl = window.location.href.substring(0, window.location.href.lastIndexOf('/') + 1);
-
-            currentRanks.forEach(user => {
-                const pastCount = pastData[user.username] ? pastData[user.username].count : user.count;
-                const pastRank = pastRankMap[user.username] || user.rank;
-                
-                const growth = user.count - pastCount;
-                const rankDiff = pastRank - user.rank; // Positive means they moved up (e.g., Rank 3 to Rank 1 = +2)
-
-                // Formatting values
-                const formattedCount = user.count.toLocaleString();
-                const formattedGrowth = Math.abs(growth).toLocaleString();
-                
-                // Determine styling classes
-                let cardClass = 'card';
-                let tagClass = 'change-tag';
-                let changeIcon = '';
-                
-                if (growth > 0) {
-                    cardClass += ' glow-pulse';
-                    tagClass += ' change-up';
-                    changeIcon = '▲';
-                } else if (growth < 0) {
-                    cardClass += ' loss-border';
-                    tagClass += ' change-down';
-                    changeIcon = '▼';
-                }
-
-                // Determine Rank Marker
-                let markerClass = 'marker-none';
-                let markerText = '-';
-                if (rankDiff > 0) {
-                    markerClass = 'marker-up';
-                    markerText = `▲ ${rankDiff}`;
-                } else if (rankDiff < 0) {
-                    markerClass = 'marker-down';
-                    markerText = `▼ ${Math.abs(rankDiff)}`;
-                }
-
-                // Parse image (handles both external links and local relative GH Pages links)
-                const imgUrl = user.img.startsWith('http') ? user.img : new URL(user.img, baseUrl).href;
-
-                // Build Element
-                const el = document.createElement('div');
-                el.className = cardClass;
-                el.style.setProperty('--vt-name', `card-${user.username.replace(/[^a-zA-Z0-9]/g, '')}`);
-                
-                el.innerHTML = `
-                    <div class="rank-marker ${markerClass}">${markerText}</div>
-                    <div class="rank">#${user.rank}</div>
-                    <img src="${imgUrl}" alt="${user.username}" class="avatar">
-                    <div class="info">
-                        <p class="username">${user.username}</p>
-                        <div class="stats">
-                            <span class="count">${formattedCount}</span>
-                            ${growth !== 0 ? `<span class="${tagClass}">${changeIcon} ${formattedGrowth}</span>` : ''}
+            players.forEach((p, index) => {
+                let card = document.getElementById(`card-${p.user}`);
+                if (!card) {
+                    card = document.createElement('div');
+                    card.id = `card-${p.user}`;
+                    card.className = 'card active-glow';
+                    card.innerHTML = `
+                        <div class="marker" id="marker-${p.user}"></div>
+                        <img class="avatar" id="img-${p.user}" src="" alt="">
+                        <div class="info">
+                            <div class="username">${p.user}</div>
+                            <div class="count" id="count-${p.user}"></div>
                         </div>
-                    </div>
-                `;
-                container.appendChild(el);
+                        <div class="change-tag" id="change-${p.user}"></div>
+                    `;
+                    board.appendChild(card);
+                }
+
+                card.style.top = `${index * (cardHeight + cardGap)}px`;
+                document.getElementById(`img-${p.user}`).src = getAbsolutePath(p.img);
+                document.getElementById(`count-${p.user}`).innerText = p.currentCount.toLocaleString();
+
+                const changeEl = document.getElementById(`change-${p.user}`);
+                const markerEl = document.getElementById(`marker-${p.user}`);
+                
+                let glowColor, intensity;
+                if (p.growth > 0) {
+                    changeEl.innerText = `▲ +${p.growth.toLocaleString()}`;
+                    changeEl.style.color = '#00ff88';
+                    let ratio = posPercents.length > 1 ? (p.percent - minPos) / (maxPos - minPos) : 1;
+                    intensity = 0.3 + (0.7 * ratio);
+                    glowColor = `rgba(0, 255, 136, ${intensity})`;
+                    markerEl.innerText = index === 0 ? "🏆 TOP GAINER" : "📈 UP";
+                } else if (p.growth < 0) {
+                    changeEl.innerText = `▼ ${p.growth.toLocaleString()}`;
+                    changeEl.style.color = '#ff3366';
+                    let absP = Math.abs(p.percent);
+                    let ratio = negPercents.length > 1 ? (absP - minNeg) / (maxNeg - minNeg) : 1;
+                    intensity = 0.3 + (0.7 * ratio);
+                    glowColor = `rgba(255, 51, 102, ${intensity})`;
+                    markerEl.innerText = index === players.length - 1 ? "🔻 BIG DROP" : "⚠️ LOSS";
+                } else {
+                    changeEl.innerText = `- 0`;
+                    changeEl.style.color = 'var(--text-muted)';
+                    glowColor = 'rgba(255,255,255,0.1)';
+                    card.classList.remove('active-glow');
+                    markerEl.innerText = "FLAT";
+                }
+
+                if(p.growth !== 0) card.classList.add('active-glow');
+                card.style.setProperty('--glow-color', glowColor);
+                markerEl.style.color = p.growth > 0 ? '#00ff88' : (p.growth < 0 ? '#ff3366' : 'var(--text-muted)');
             });
         }
 
-        // Boot
         init();
     </script>
 </body>
