@@ -1,0 +1,473 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=500, height=900, initial-scale=1.0">
+    <title>StreamStats Live - YouTube Shorts</title>
+    <style>
+        :root {
+            --bg-deep: #09090b;
+            --bg-card: rgba(18, 18, 26, 0.85);
+            --neon-pink: #ff007f;
+            --neon-cyan: #00f3ff;
+            --loss-red: #ff003c;
+            --gain-green: #00ff88;
+            --text-main: #ffffff;
+            --text-muted: #888899;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-deep);
+            color: var(--text-main);
+            width: 500px;
+            height: 900px;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            align-items: center; 
+            padding: 28px 23px; 
+            background: 
+                radial-gradient(circle at 50% 10%, rgba(0, 243, 255, 0.1), transparent 40%),
+                radial-gradient(circle at 50% 90%, rgba(255, 0, 127, 0.08), transparent 40%),
+                var(--bg-deep);
+        }
+
+        header {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 18px;
+            margin-bottom: 28px;
+            z-index: 10;
+        }
+
+        h1 {
+            font-size: 2.1rem;
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            text-shadow: 0 0 14px rgba(0, 243, 255, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+        }
+
+        .slider-wrapper {
+            background: rgba(10, 10, 15, 0.9);
+            padding: 9px 18px;
+            border-radius: 10px;
+            border: 1px solid rgba(0, 243, 255, 0.3);
+            box-shadow: 0 0 14px rgba(0, 243, 255, 0.15);
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            gap: 7px;
+            backdrop-filter: blur(12px);
+        }
+
+        .slider-labels {
+            display: flex;
+            justify-content: space-between;
+            font-weight: 800;
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+        }
+
+        .slider-labels span {
+            width: 33%;
+            text-align: center;
+            transition: color 0.3s, text-shadow 0.3s;
+        }
+
+        .slider-labels span.active {
+            color: var(--neon-cyan);
+            text-shadow: 0 0 7px var(--neon-cyan);
+        }
+
+        input[type=range] {
+            -webkit-appearance: none;
+            width: 100%;
+            background: rgba(255, 255, 255, 0.15);
+            height: 6px;
+            border-radius: 3px;
+            outline: none;
+            position: relative;
+            cursor: pointer;
+        }
+
+        input[type=range]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background: var(--neon-cyan);
+            box-shadow: 0 0 10px var(--neon-cyan);
+            cursor: pointer;
+            transition: transform 0.1s;
+        }
+
+        input[type=range]::-webkit-slider-thumb:hover { transform: scale(1.15); }
+
+        #leaderboard {
+            position: relative;
+            width: 100%;
+            flex-grow: 1;
+            transition: height 0.4s ease;
+        }
+
+        .card {
+            position: absolute;
+            height: 75px;
+            width: 100%;
+            background: var(--bg-card);
+            backdrop-filter: blur(25px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            padding: 0 18px;
+            box-shadow: 0 7px 18px rgba(0, 0, 0, 0.9);
+            will-change: transform, opacity;
+        }
+
+        @keyframes pulse-glow {
+            0% { box-shadow: 0 0 5px var(--glow-color), inset 0 0 2px var(--glow-color); }
+            50% { box-shadow: 0 0 16px var(--glow-color), inset 0 0 7px var(--glow-color); }
+            100% { box-shadow: 0 0 5px var(--glow-color), inset 0 0 2px var(--glow-color); }
+        }
+
+        .card.active-glow {
+            border-color: var(--glow-color);
+            animation: pulse-glow 2s infinite ease-in-out;
+        }
+
+        .marker {
+            position: absolute;
+            top: -10px;
+            right: 18px;
+            background: var(--bg-deep);
+            border: 2px solid var(--glow-color);
+            color: var(--text-main);
+            font-size: 0.55rem;
+            font-weight: 900;
+            padding: 3px 10px;
+            border-radius: 12px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.6);
+            z-index: 5;
+            display: none;
+            text-transform: uppercase;
+        }
+
+        .rank {
+            font-size: 1.6rem;
+            font-weight: 900;
+            color: rgba(255, 255, 255, 0.2);
+            width: 46px;
+            font-style: italic;
+        }
+
+        .avatar {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid var(--text-muted);
+            margin-right: 14px;
+        }
+
+        .info {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .username {
+            font-size: 1.3rem;
+            font-weight: 800;
+            white-space: nowrap;
+            text-overflow: ellipsis;
+            overflow: hidden;
+        }
+
+        .metrics {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            margin-left: 10px;
+        }
+
+        .count {
+            font-size: 1.85rem;
+            font-weight: 900;
+            font-variant-numeric: tabular-nums;
+            min-width: 115px;
+            text-align: right;
+        }
+
+        .stats-col {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            gap: 4px;
+            min-width: 83px;
+        }
+
+        .change-tag {
+            font-size: 0.8rem;
+            font-weight: 900;
+            padding: 4px 10px;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            justify-content: flex-end;
+            width: 100%;
+            font-variant-numeric: tabular-nums;
+        }
+
+        .pct-tag {
+            font-size: 0.6rem;
+            font-weight: 700;
+            color: var(--text-muted);
+        }
+
+        .change-tag.up { background: rgba(0, 255, 136, 0.15); color: var(--gain-green); border: 1px solid rgba(0, 255, 136, 0.5); }
+        .change-tag.down { background: rgba(255, 0, 60, 0.2); color: var(--loss-red); border: 1px solid var(--loss-red); }
+
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>
+            <img src="images/1788637665929.png" alt="88 Reality Logo" style="height: 42px; width: auto; object-fit: contain; border-radius: 50%;">
+            88 Reality <span style="color: var(--neon-cyan);">Track</span>
+        </h1>
+        <div class="slider-wrapper">
+            <div class="slider-labels">
+                <span id="label-0" class="active">24 H</span>
+                <span id="label-1">3 Days</span>
+                <span id="label-2">7 Days</span>
+            </div>
+            <input type="range" id="timeSlider" min="0" max="2" step="1" value="0">
+        </div>
+    </header>
+
+    <div id="leaderboard"></div>
+
+    <script>
+        let globalDataset = {};
+        let sortedDates = [];
+        const sliderMap = { 0: 1, 1: 3, 2: 7 };
+
+        function resolveImagePath(imgString) {
+            if (!imgString) return '';
+            if (imgString.startsWith('http')) return imgString;
+            
+            let basePath = window.location.href.split('?')[0];
+            basePath = basePath.substring(0, basePath.lastIndexOf('/'));
+            
+            if (imgString.startsWith('/')) imgString = imgString.substring(1);
+            return `${basePath}/${imgString}`;
+        }
+
+        function formatNumber(num) { return Math.floor(num).toLocaleString('en-US'); }
+
+        function animateValue(element, start, end, duration) {
+            if (start === end) {
+                element.innerHTML = formatNumber(end);
+                return;
+            }
+            let startTimestamp = null;
+            const step = (timestamp) => {
+                if (!startTimestamp) startTimestamp = timestamp;
+                const progress = Math.min((timestamp - startTimestamp) / duration, 1);
+                const easeProgress = 1 - Math.pow(1 - progress, 3);
+                const current = (easeProgress * (end - start) + start);
+                element.innerHTML = formatNumber(current);
+                if (progress < 1) window.requestAnimationFrame(step);
+                else element.innerHTML = formatNumber(end);
+            };
+            window.requestAnimationFrame(step);
+        }
+
+        async function init() {
+            try {
+                const response = await fetch('data.json?t=' + Date.now());
+                globalDataset = await response.json();
+                sortedDates = Object.keys(globalDataset).sort((a, b) => b.localeCompare(a));
+                
+                if (sortedDates.length > 0) {
+                    document.getElementById('timeSlider').addEventListener('input', (e) => {
+                        const val = parseInt(e.target.value);
+                        updateDashboard(sliderMap[val]);
+                        document.querySelectorAll('.slider-labels span').forEach((el, idx) => {
+                            el.className = idx === val ? 'active' : '';
+                        });
+                    });
+                    updateDashboard(1, true); 
+                }
+            } catch (error) { console.error('Error fetching data:', error); }
+        }
+
+        function updateDashboard(daysBack, isInitialLoad = false) {
+            const latestDate = sortedDates[0];
+            const targetIndex = Math.min(daysBack, sortedDates.length - 1);
+            const pastDate = sortedDates[targetIndex];
+            
+            let leaderArray = [];
+            let posPercents = [];
+            let negPercents = [];
+
+            for (const [username, currentMetrics] of Object.entries(globalDataset[latestDate])) {
+                const currentCount = currentMetrics.count;
+                const pastCount = (globalDataset[pastDate] && globalDataset[pastDate][username]) ? globalDataset[pastDate][username].count : currentCount;
+                const growth = currentCount - pastCount;
+                const pct = pastCount === 0 ? 0 : (growth / pastCount) * 100;
+
+                if(pct > 0) posPercents.push(pct);
+                if(pct < 0) negPercents.push(Math.abs(pct));
+
+                leaderArray.push({
+                    username, currentCount, pastCount, growth, pct, img: resolveImagePath(currentMetrics.img)
+                });
+            }
+
+            leaderArray.sort((a, b) => b.currentCount - a.currentCount);
+            renderCards(leaderArray, posPercents, negPercents, isInitialLoad);
+        }
+
+        function renderCards(leaderArray, posPercents, negPercents, isInitialLoad) {
+            const board = document.getElementById('leaderboard');
+            const cardHeight = 75; 
+            const gapY = 14; 
+            
+            board.style.height = `${leaderArray.length * (cardHeight + gapY)}px`;
+
+            const maxPos = Math.max(...posPercents, 0.01);
+            const minPos = Math.min(...posPercents, 0);
+            const maxNeg = Math.max(...negPercents, 0.01);
+            const minNeg = Math.min(...negPercents, 0);
+
+            leaderArray.forEach((user, index) => {
+                let card = document.getElementById(`card-${user.username}`);
+                let isNewCard = false;
+                
+                const isGrowth = user.growth > 0;
+                const isLoss = user.growth < 0;
+                const pctFormatted = Math.abs(user.pct).toFixed(2) + '%';
+                
+                if (!card) {
+                    isNewCard = true;
+                    card = document.createElement('div');
+                    card.id = `card-${user.username}`;
+                    card.className = 'card';
+                    card.dataset.prevCount = user.currentCount; 
+                    
+                    card.innerHTML = `
+                        <div class="marker"></div>
+                        <div class="rank"></div>
+                        <img class="avatar" src="" alt="">
+                        <div class="info"><div class="username"></div></div>
+                        <div class="metrics">
+                            <div class="count"></div>
+                            <div class="stats-col">
+                                <div class="change-tag"></div>
+                                <div class="pct-tag"></div>
+                            </div>
+                        </div>
+                    `;
+                    board.appendChild(card);
+                }
+
+                const yOffset = `${index * (cardHeight + gapY)}px`;
+                
+                if (isNewCard && isInitialLoad) {
+                    card.style.transform = `translate(0px, 150vh)`;
+                    card.style.opacity = '0';
+                    void card.offsetWidth; 
+                    card.style.transition = `transform 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) ${index * 0.08}s, opacity 0.8s ease ${index * 0.08}s, box-shadow 0.3s`;
+                } else if (!isInitialLoad) {
+                    card.style.transition = `transform 0.8s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.3s`;
+                }
+
+                card.style.opacity = '1';
+                card.style.transform = `translate(0px, ${yOffset})`;
+
+                card.querySelector('.rank').innerText = `#${index + 1}`;
+                const imgEl = card.querySelector('.avatar');
+                if(imgEl.src !== user.img) imgEl.src = user.img;
+                card.querySelector('.username').innerText = user.username; 
+
+                const countEl = card.querySelector('.count');
+                const prevCount = parseInt(card.dataset.prevCount) || user.currentCount;
+                animateValue(countEl, prevCount, user.currentCount, 800);
+                card.dataset.prevCount = user.currentCount;
+
+                const changeTag = card.querySelector('.change-tag');
+                const markerEl = card.querySelector('.marker');
+                let glowColor = 'rgba(255,255,255,0.05)';
+                let intensity;
+
+                card.classList.remove('active-glow');
+                markerEl.style.display = 'none';
+
+                if (isGrowth) {
+                    changeTag.className = 'change-tag up';
+                    changeTag.innerText = `▲ ${formatNumber(Math.abs(user.growth))}`;
+                    let ratio = posPercents.length > 1 ? (user.pct - minPos) / (maxPos - minPos) : 1;
+                    intensity = 0.3 + (0.7 * ratio); 
+                    glowColor = `rgba(0, 255, 136, ${intensity})`;
+                    card.classList.add('active-glow');
+                    imgEl.style.borderColor = 'var(--gain-green)';
+                    
+                    if(user.pct === maxPos && maxPos > 0) {
+                        markerEl.innerText = "🏆 TOP GAINER";
+                        markerEl.style.color = "var(--gain-green)";
+                        markerEl.style.display = "block";
+                    }
+                } else if (isLoss) {
+                    changeTag.className = 'change-tag down';
+                    changeTag.innerText = `▼ ${formatNumber(Math.abs(user.growth))}`;
+                    let absP = Math.abs(user.pct);
+                    let ratio = negPercents.length > 1 ? (absP - minNeg) / (maxNeg - minNeg) : 1;
+                    intensity = 0.3 + (0.7 * ratio);
+                    glowColor = `rgba(255, 0, 60, ${intensity})`;
+                    card.classList.add('active-glow');
+                    imgEl.style.borderColor = 'var(--loss-red)';
+
+                    if(absP === maxNeg && maxNeg > 0) {
+                        markerEl.innerText = "🔻 BIG DROP";
+                        markerEl.style.color = "var(--loss-red)";
+                        markerEl.style.display = "block";
+                    }
+                } else {
+                    changeTag.className = 'change-tag';
+                    changeTag.style.background = 'transparent';
+                    changeTag.style.border = '1px solid rgba(255,255,255,0.1)';
+                    changeTag.style.color = 'var(--text-muted)';
+                    changeTag.innerText = `- 0`;
+                    imgEl.style.borderColor = 'var(--text-muted)';
+                }
+
+                card.style.setProperty('--glow-color', glowColor);
+                card.querySelector('.pct-tag').innerText = `${isLoss ? '-' : '+'}${pctFormatted}`;
+            });
+        }
+
+        window.addEventListener('DOMContentLoaded', init);
+        setInterval(init, 60000); 
+    </script>
+</body>
+</html>
