@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=1080, height=1920, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>StreamStats Live - YouTube Shorts</title>
     <style>
         :root {
@@ -26,12 +26,14 @@
         body {
             background-color: var(--bg-deep);
             color: var(--text-main);
-            width: 1080px;
-            height: 1920px;
-            overflow: hidden;
+            width: 100%;
+            min-height: 100vh;
+            overflow-x: auto;
+            overflow-y: auto;
             display: flex;
             flex-direction: column;
-            padding: 60px 50px;
+            align-items: center; /* Center aligns the content */
+            padding: 60px 5vw 100px 5vw; /* Padding on sides (5vw) and bottom (100px) */
             background: 
                 radial-gradient(circle at 50% 10%, rgba(0, 243, 255, 0.1), transparent 40%),
                 radial-gradient(circle at 50% 90%, rgba(255, 0, 127, 0.08), transparent 40%),
@@ -40,6 +42,8 @@
 
         header {
             width: 100%;
+            max-width: 980px; /* Constrain width for centering */
+            min-width: 800px; /* Enforces horizontal scroll if window shrinks too much */
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -117,6 +121,8 @@
         #leaderboard {
             position: relative;
             width: 100%;
+            max-width: 980px; 
+            min-width: 800px;
             flex-grow: 1;
             transition: height 0.4s ease;
         }
@@ -267,9 +273,11 @@
         function resolveImagePath(imgString) {
             if (!imgString) return '';
             if (imgString.startsWith('http')) return imgString;
-            let basePath = window.location.origin + window.location.pathname;
-            if (basePath.endsWith('.html')) basePath = basePath.substring(0, basePath.lastIndexOf('/'));
-            if (basePath.endsWith('/')) basePath = basePath.slice(0, -1);
+            
+            // Cleanly get the base directory URL regardless of file name or query string
+            let basePath = window.location.href.split('?')[0];
+            basePath = basePath.substring(0, basePath.lastIndexOf('/'));
+            
             if (imgString.startsWith('/')) imgString = imgString.substring(1);
             return `${basePath}/${imgString}`;
         }
@@ -344,6 +352,9 @@
             const board = document.getElementById('leaderboard');
             const cardHeight = 160; 
             const gapY = 30; 
+            
+            // Calculate exact height needed for the board to enable vertical scrolling
+            board.style.height = `${leaderArray.length * (cardHeight + gapY)}px`;
 
             const maxPos = Math.max(...posPercents, 0.01);
             const minPos = Math.min(...posPercents, 0);
