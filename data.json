@@ -1,6 +1,6 @@
 {
   "2026-09-06": {
-    "Kanika mann": {"count": 7300000, "img": "images/kanika_mann.jpeg"},
+    "Kanika mann": {"count": 7300000, "img": "./kanika_mann.jpeg"},
     "Aasif Khan": {"count": 236000, "img": "https://picsum.photos"},
     "Qazi Touqeer": {"count": 172314, "img": "https://picsum.photos"},
     "Isha Rikhi": {"count": 1152868, "img": "https://picsum.photos"},
