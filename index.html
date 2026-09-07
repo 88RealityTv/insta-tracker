@@ -10,7 +10,7 @@
             color: #ffffff; 
             font-family: system-ui, sans-serif; 
             padding: 25px; 
-            overflow: hidden;
+            overflow-x: hidden;
         }
         
         /* Interactive Toggle Switch Styling */
@@ -25,7 +25,6 @@
             border-radius: 30px;
             display: inline-flex;
             border: 1px solid #2d2d3d;
-            position: relative;
         }
         .toggle-btn {
             background: transparent;
@@ -37,7 +36,6 @@
             cursor: pointer;
             border-radius: 20px;
             transition: all 0.2s ease;
-            z-index: 2;
         }
         .toggle-btn.active {
             color: #ffffff;
@@ -77,6 +75,11 @@
         let globalData = {};
         let currentDaysOffset = 1;
 
+        // Base URL logic to correctly map relative image directories on GitHub Pages
+        const currentPath = window.location.pathname;
+        const directoryPath = currentPath.substring(0, currentPath.lastIndexOf('/') + 1);
+        const baseUrl = window.location.origin + directoryPath;
+
         function formatNum(n) { return n ? n.toLocaleString() : '0'; }
         
         function getTrendHTML(today, past) {
@@ -114,13 +117,23 @@
 
             for (const user in tData) {
                 const cur = tData[user].count;
-                const imgUrl = tData[user].img || 'https://placeholder.com';
+                let imgUrl = tData[user].img || '';
                 const pastVal = pData[user] ? pData[user].count : undefined;
+
+                // Format file links to use absolute project directories 
+                if (imgUrl && !imgUrl.startsWith('http') && !imgUrl.startsWith('data:')) {
+                    if (imgUrl.startsWith('./')) {
+                        imgUrl = imgUrl.substring(2);
+                    }
+                    imgUrl = baseUrl + imgUrl;
+                } else if (!imgUrl) {
+                    imgUrl = 'https://placeholder.com';
+                }
 
                 const card = document.createElement('div');
                 card.className = 'card';
                 card.innerHTML = `
-                    <img class="profile-img" src="${imgUrl}" alt="${user}">
+                    <img class="profile-img" src="${imgUrl}" alt="${user}" onerror="this.src='https://placeholder.com'">
                     <div class="info">
                         <div class="name">${user}</div>
                         <div class="count">${formatNum(cur)}</div>
