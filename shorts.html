@@ -3,291 +3,461 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=1080, height=1920, initial-scale=1.0">
-    <title>StreamStats - Vertical</title>
+    <title>StreamStats Live - YouTube Shorts</title>
     <style>
         :root {
-            --bg-color: #09090b;
-            --panel-bg: rgba(18, 18, 26, 0.75);
-            --pink-grad: linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%);
+            --bg-deep: #09090b;
+            --bg-card: rgba(18, 18, 26, 0.85);
+            --neon-pink: #ff007f;
+            --neon-cyan: #00f3ff;
+            --loss-red: #ff003c;
+            --gain-green: #00ff88;
             --text-main: #ffffff;
-            --text-muted: #8892b0;
-            --card-h: 160px;
-            --card-gap: 25px;
+            --text-muted: #888899;
         }
 
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: system-ui, -apple-system, sans-serif; }
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        }
 
         body {
-            background-color: var(--bg-color);
-            background-image: radial-gradient(circle at 50% 0%, #2a1b38 0%, transparent 60%);
+            background-color: var(--bg-deep);
             color: var(--text-main);
             width: 1080px;
             height: 1920px;
             overflow: hidden;
             display: flex;
             flex-direction: column;
-            padding: 80px 50px;
+            padding: 60px 50px;
+            background: 
+                radial-gradient(circle at 50% 10%, rgba(0, 243, 255, 0.1), transparent 40%),
+                radial-gradient(circle at 50% 90%, rgba(255, 0, 127, 0.08), transparent 40%),
+                var(--bg-deep);
         }
 
-        .header {
-            text-align: center;
+        header {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 40px;
             margin-bottom: 60px;
             z-index: 10;
         }
 
-        .title-box h1 {
+        h1 {
             font-size: 4.5rem;
             font-weight: 900;
             text-transform: uppercase;
-            letter-spacing: 3px;
-            background: var(--pink-grad);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            margin-bottom: 30px;
+            letter-spacing: 5px;
+            text-shadow: 0 0 30px rgba(0, 243, 255, 0.5);
+            text-align: center;
         }
 
-        .controls {
-            display: inline-flex;
-            background: rgba(255, 255, 255, 0.05);
-            backdrop-filter: blur(15px);
-            border: 2px solid rgba(255, 255, 255, 0.1);
-            border-radius: 60px;
-            padding: 15px;
-            gap: 15px;
-        }
-
-        .controls button {
-            background: transparent;
-            border: none;
-            color: var(--text-muted);
-            font-size: 2rem;
-            font-weight: 800;
-            padding: 15px 40px;
-            border-radius: 50px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-
-        .controls button.active {
-            background: var(--text-main);
-            color: var(--bg-color);
-            box-shadow: 0 0 20px rgba(255, 255, 255, 0.6);
-        }
-
-        .leaderboard {
-            position: relative;
-            flex: 1;
+        .slider-wrapper {
+            background: rgba(10, 10, 15, 0.9);
+            padding: 20px 40px;
+            border-radius: 20px;
+            border: 2px solid rgba(0, 243, 255, 0.3);
+            box-shadow: 0 0 30px rgba(0, 243, 255, 0.15);
             width: 100%;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            backdrop-filter: blur(12px);
+        }
+
+        .slider-labels {
+            display: flex;
+            justify-content: space-between;
+            font-weight: 800;
+            font-size: 1.5rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+        }
+
+        .slider-labels span {
+            width: 33%;
+            text-align: center;
+            transition: color 0.3s, text-shadow 0.3s;
+        }
+
+        .slider-labels span.active {
+            color: var(--neon-cyan);
+            text-shadow: 0 0 15px var(--neon-cyan);
+        }
+
+        input[type=range] {
+            -webkit-appearance: none;
+            width: 100%;
+            background: rgba(255, 255, 255, 0.15);
+            height: 12px;
+            border-radius: 6px;
+            outline: none;
+            position: relative;
+            cursor: pointer;
+        }
+
+        input[type=range]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            background: var(--neon-cyan);
+            box-shadow: 0 0 20px var(--neon-cyan);
+            cursor: pointer;
+            transition: transform 0.1s;
+        }
+
+        input[type=range]::-webkit-slider-thumb:hover { transform: scale(1.15); }
+
+        #leaderboard {
+            position: relative;
+            width: 100%;
+            flex-grow: 1;
+            transition: height 0.4s ease;
         }
 
         .card {
             position: absolute;
-            left: 0;
-            right: 0;
-            height: var(--card-h);
-            background: var(--panel-bg);
-            backdrop-filter: blur(20px);
+            height: 160px;
+            width: 100%;
+            background: var(--bg-card);
+            backdrop-filter: blur(25px);
             border: 2px solid rgba(255, 255, 255, 0.05);
-            border-radius: 30px;
+            border-radius: 20px;
             display: flex;
             align-items: center;
             padding: 0 40px;
-            transition: top 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
-            overflow: visible;
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.9);
+            will-change: transform, opacity;
         }
 
-        @keyframes pulseGlow {
-            0% { box-shadow: 0 0 10px var(--glow-color), inset 0 0 10px var(--glow-color); }
-            50% { box-shadow: 0 0 40px var(--glow-color), inset 0 0 20px var(--glow-color); }
-            100% { box-shadow: 0 0 10px var(--glow-color), inset 0 0 10px var(--glow-color); }
+        @keyframes pulse-glow {
+            0% { box-shadow: 0 0 10px var(--glow-color), inset 0 0 5px var(--glow-color); }
+            50% { box-shadow: 0 0 35px var(--glow-color), inset 0 0 15px var(--glow-color); }
+            100% { box-shadow: 0 0 10px var(--glow-color), inset 0 0 5px var(--glow-color); }
         }
 
         .card.active-glow {
             border-color: var(--glow-color);
-            animation: pulseGlow 2s infinite ease-in-out;
+            animation: pulse-glow 2s infinite ease-in-out;
         }
 
         .marker {
             position: absolute;
-            top: -25px;
+            top: -20px;
             right: 40px;
-            background: var(--bg-color);
+            background: var(--bg-deep);
             border: 3px solid var(--glow-color);
             color: var(--text-main);
-            font-size: 1.5rem;
+            font-size: 1.2rem;
             font-weight: 900;
-            padding: 8px 25px;
-            border-radius: 30px;
+            padding: 6px 20px;
+            border-radius: 25px;
             box-shadow: 0 8px 20px rgba(0,0,0,0.6);
             z-index: 5;
-            letter-spacing: 1px;
+            display: none;
+            text-transform: uppercase;
+        }
+
+        .rank {
+            font-size: 3.5rem;
+            font-weight: 900;
+            color: rgba(255, 255, 255, 0.2);
+            width: 100px;
+            font-style: italic;
         }
 
         .avatar {
             width: 110px;
             height: 110px;
             border-radius: 50%;
-            border: 4px solid var(--text-muted);
             object-fit: cover;
-            margin-right: 40px;
+            border: 3px solid var(--text-muted);
+            margin-right: 30px;
         }
 
         .info {
-            flex: 1;
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
         }
 
         .username {
             font-size: 2.8rem;
             font-weight: 800;
-            margin-bottom: 5px;
+            white-space: nowrap;
+            text-overflow: ellipsis;
+            overflow: hidden;
+        }
+
+        .metrics {
+            display: flex;
+            align-items: center;
+            gap: 30px;
+            margin-left: 20px;
         }
 
         .count {
-            font-size: 2rem;
-            color: var(--text-muted);
+            font-size: 4rem;
+            font-weight: 900;
             font-variant-numeric: tabular-nums;
+            min-width: 250px;
+            text-align: right;
+        }
+
+        .stats-col {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            gap: 8px;
+            min-width: 180px;
         }
 
         .change-tag {
-            font-size: 3rem;
+            font-size: 1.8rem;
             font-weight: 900;
+            padding: 8px 20px;
+            border-radius: 12px;
             display: flex;
             align-items: center;
+            gap: 8px;
+            justify-content: flex-end;
+            width: 100%;
             font-variant-numeric: tabular-nums;
-            text-shadow: 0 0 20px rgba(0,0,0,0.8);
         }
+
+        .pct-tag {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: var(--text-muted);
+        }
+
+        .change-tag.up { background: rgba(0, 255, 136, 0.15); color: var(--gain-green); border: 2px solid rgba(0, 255, 136, 0.5); }
+        .change-tag.down { background: rgba(255, 0, 60, 0.2); color: var(--loss-red); border: 2px solid var(--loss-red); }
 
     </style>
 </head>
 <body>
-    <div class="header">
-        <div class="title-box">
-            <h1>Follower Tracker</h1>
+
+    <header>
+        <h1>Live <span style="color: var(--neon-cyan);">Tracker</span></h1>
+        <div class="slider-wrapper">
+            <div class="slider-labels">
+                <span id="label-0" class="active">24 H</span>
+                <span id="label-1">3 Days</span>
+                <span id="label-2">7 Days</span>
+            </div>
+            <input type="range" id="timeSlider" min="0" max="2" step="1" value="0">
         </div>
-        <div class="controls">
-            <button onclick="updateData(1)" id="btn-1">24H</button>
-            <button onclick="updateData(3)" id="btn-3" class="active">3D</button>
-            <button onclick="updateData(7)" id="btn-7">7D</button>
-        </div>
-    </div>
-    <div class="leaderboard" id="leaderboard"></div>
+    </header>
+
+    <div id="leaderboard"></div>
 
     <script>
-        let rawData = null;
-        let dates = [];
-        const cardHeight = 160;
-        const cardGap = 25;
+        let globalDataset = {};
+        let sortedDates = [];
+        const sliderMap = { 0: 1, 1: 3, 2: 7 };
+
+        function resolveImagePath(imgString) {
+            if (!imgString) return '';
+            if (imgString.startsWith('http')) return imgString;
+            let basePath = window.location.origin + window.location.pathname;
+            if (basePath.endsWith('.html')) basePath = basePath.substring(0, basePath.lastIndexOf('/'));
+            if (basePath.endsWith('/')) basePath = basePath.slice(0, -1);
+            if (imgString.startsWith('/')) imgString = imgString.substring(1);
+            return `${basePath}/${imgString}`;
+        }
+
+        function formatNumber(num) { return Math.floor(num).toLocaleString('en-US'); }
+
+        function animateValue(element, start, end, duration) {
+            if (start === end) {
+                element.innerHTML = formatNumber(end);
+                return;
+            }
+            let startTimestamp = null;
+            const step = (timestamp) => {
+                if (!startTimestamp) startTimestamp = timestamp;
+                const progress = Math.min((timestamp - startTimestamp) / duration, 1);
+                const easeProgress = 1 - Math.pow(1 - progress, 3);
+                const current = (easeProgress * (end - start) + start);
+                element.innerHTML = formatNumber(current);
+                if (progress < 1) window.requestAnimationFrame(step);
+                else element.innerHTML = formatNumber(end);
+            };
+            window.requestAnimationFrame(step);
+        }
 
         async function init() {
             try {
-                const res = await fetch('data.json');
-                rawData = await res.json();
-                dates = Object.keys(rawData).sort();
-                updateData(3);
-            } catch (err) {
-                console.error("Error loading data.json", err);
-            }
+                const response = await fetch('data.json?t=' + Date.now());
+                globalDataset = await response.json();
+                sortedDates = Object.keys(globalDataset).sort((a, b) => b.localeCompare(a));
+                
+                if (sortedDates.length > 0) {
+                    document.getElementById('timeSlider').addEventListener('input', (e) => {
+                        const val = parseInt(e.target.value);
+                        updateDashboard(sliderMap[val]);
+                        document.querySelectorAll('.slider-labels span').forEach((el, idx) => {
+                            el.className = idx === val ? 'active' : '';
+                        });
+                    });
+                    updateDashboard(1, true); 
+                }
+            } catch (error) { console.error('Error fetching data:', error); }
         }
 
-        function getAbsolutePath(path) {
-            if(path.startsWith('http')) return path;
-            const baseUrl = window.location.origin + window.location.pathname;
-            return new URL(path, baseUrl).href;
-        }
-
-        function updateData(daysAgo) {
-            document.querySelectorAll('.controls button').forEach(b => b.classList.remove('active'));
-            document.getElementById(`btn-${daysAgo}`).classList.add('active');
-
-            if (!dates.length) return;
-            const latestDate = dates[dates.length - 1];
-            const pastIndex = Math.max(0, dates.length - 1 - daysAgo);
-            const pastDate = dates[pastIndex];
-
-            const currentStats = rawData[latestDate];
-            const pastStats = rawData[pastDate];
-
-            let players = [];
+        function updateDashboard(daysBack, isInitialLoad = false) {
+            const latestDate = sortedDates[0];
+            const targetIndex = Math.min(daysBack, sortedDates.length - 1);
+            const pastDate = sortedDates[targetIndex];
+            
+            let leaderArray = [];
             let posPercents = [];
             let negPercents = [];
 
-            for (const [user, data] of Object.entries(currentStats)) {
-                const currentCount = data.count;
-                const pastCount = pastStats[user] ? pastStats[user].count : currentCount;
+            for (const [username, currentMetrics] of Object.entries(globalDataset[latestDate])) {
+                const currentCount = currentMetrics.count;
+                const pastCount = (globalDataset[pastDate] && globalDataset[pastDate][username]) ? globalDataset[pastDate][username].count : currentCount;
                 const growth = currentCount - pastCount;
-                const percent = pastCount > 0 ? (growth / pastCount) * 100 : 0;
+                const pct = pastCount === 0 ? 0 : (growth / pastCount) * 100;
 
-                if(percent > 0) posPercents.push(percent);
-                if(percent < 0) negPercents.push(Math.abs(percent));
+                if(pct > 0) posPercents.push(pct);
+                if(pct < 0) negPercents.push(Math.abs(pct));
 
-                players.push({ user, currentCount, growth, percent, img: data.img });
+                leaderArray.push({
+                    username, currentCount, pastCount, growth, pct, img: resolveImagePath(currentMetrics.img)
+                });
             }
 
-            players.sort((a, b) => b.growth - a.growth);
+            leaderArray.sort((a, b) => b.currentCount - a.currentCount);
+            renderCards(leaderArray, posPercents, negPercents, isInitialLoad);
+        }
+
+        function renderCards(leaderArray, posPercents, negPercents, isInitialLoad) {
+            const board = document.getElementById('leaderboard');
+            const cardHeight = 160; 
+            const gapY = 30; 
 
             const maxPos = Math.max(...posPercents, 0.01);
             const minPos = Math.min(...posPercents, 0);
             const maxNeg = Math.max(...negPercents, 0.01);
             const minNeg = Math.min(...negPercents, 0);
 
-            const board = document.getElementById('leaderboard');
-            
-            players.forEach((p, index) => {
-                let card = document.getElementById(`card-${p.user}`);
+            leaderArray.forEach((user, index) => {
+                let card = document.getElementById(`card-${user.username}`);
+                let isNewCard = false;
+                
+                const isGrowth = user.growth > 0;
+                const isLoss = user.growth < 0;
+                const pctFormatted = Math.abs(user.pct).toFixed(2) + '%';
+                
                 if (!card) {
+                    isNewCard = true;
                     card = document.createElement('div');
-                    card.id = `card-${p.user}`;
-                    card.className = 'card active-glow';
+                    card.id = `card-${user.username}`;
+                    card.className = 'card';
+                    card.dataset.prevCount = user.currentCount; 
+                    
                     card.innerHTML = `
-                        <div class="marker" id="marker-${p.user}"></div>
-                        <img class="avatar" id="img-${p.user}" src="" alt="">
-                        <div class="info">
-                            <div class="username">${p.user}</div>
-                            <div class="count" id="count-${p.user}"></div>
+                        <div class="marker"></div>
+                        <div class="rank"></div>
+                        <img class="avatar" src="" alt="">
+                        <div class="info"><div class="username"></div></div>
+                        <div class="metrics">
+                            <div class="count"></div>
+                            <div class="stats-col">
+                                <div class="change-tag"></div>
+                                <div class="pct-tag"></div>
+                            </div>
                         </div>
-                        <div class="change-tag" id="change-${p.user}"></div>
                     `;
                     board.appendChild(card);
                 }
 
-                card.style.top = `${index * (cardHeight + cardGap)}px`;
-                document.getElementById(`img-${p.user}`).src = getAbsolutePath(p.img);
-                document.getElementById(`count-${p.user}`).innerText = p.currentCount.toLocaleString();
-
-                const changeEl = document.getElementById(`change-${p.user}`);
-                const markerEl = document.getElementById(`marker-${p.user}`);
+                const yOffset = `${index * (cardHeight + gapY)}px`;
                 
-                let glowColor, intensity;
-                if (p.growth > 0) {
-                    changeEl.innerText = `▲ +${p.growth.toLocaleString()}`;
-                    changeEl.style.color = '#00ff88';
-                    let ratio = posPercents.length > 1 ? (p.percent - minPos) / (maxPos - minPos) : 1;
-                    intensity = 0.3 + (0.7 * ratio);
-                    glowColor = `rgba(0, 255, 136, ${intensity})`;
-                    markerEl.innerText = index === 0 ? "🏆 TOP GAINER" : "📈 UP";
-                } else if (p.growth < 0) {
-                    changeEl.innerText = `▼ ${p.growth.toLocaleString()}`;
-                    changeEl.style.color = '#ff3366';
-                    let absP = Math.abs(p.percent);
-                    let ratio = negPercents.length > 1 ? (absP - minNeg) / (maxNeg - minNeg) : 1;
-                    intensity = 0.3 + (0.7 * ratio);
-                    glowColor = `rgba(255, 51, 102, ${intensity})`;
-                    markerEl.innerText = index === players.length - 1 ? "🔻 BIG DROP" : "⚠️ LOSS";
-                } else {
-                    changeEl.innerText = `- 0`;
-                    changeEl.style.color = 'var(--text-muted)';
-                    glowColor = 'rgba(255,255,255,0.1)';
-                    card.classList.remove('active-glow');
-                    markerEl.innerText = "FLAT";
+                if (isNewCard && isInitialLoad) {
+                    card.style.transform = `translate(0px, 150vh)`;
+                    card.style.opacity = '0';
+                    void card.offsetWidth; 
+                    card.style.transition = `transform 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) ${index * 0.08}s, opacity 0.8s ease ${index * 0.08}s, box-shadow 0.3s`;
+                } else if (!isInitialLoad) {
+                    card.style.transition = `transform 0.8s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.3s`;
                 }
 
-                if(p.growth !== 0) card.classList.add('active-glow');
+                card.style.opacity = '1';
+                card.style.transform = `translate(0px, ${yOffset})`;
+
+                card.querySelector('.rank').innerText = `#${index + 1}`;
+                const imgEl = card.querySelector('.avatar');
+                if(imgEl.src !== user.img) imgEl.src = user.img;
+                card.querySelector('.username').innerText = user.username; 
+
+                const countEl = card.querySelector('.count');
+                const prevCount = parseInt(card.dataset.prevCount) || user.currentCount;
+                animateValue(countEl, prevCount, user.currentCount, 800);
+                card.dataset.prevCount = user.currentCount;
+
+                const changeTag = card.querySelector('.change-tag');
+                const markerEl = card.querySelector('.marker');
+                let glowColor = 'rgba(255,255,255,0.05)';
+                let intensity;
+
+                card.classList.remove('active-glow');
+                markerEl.style.display = 'none';
+
+                if (isGrowth) {
+                    changeTag.className = 'change-tag up';
+                    changeTag.innerText = `▲ ${formatNumber(Math.abs(user.growth))}`;
+                    let ratio = posPercents.length > 1 ? (user.pct - minPos) / (maxPos - minPos) : 1;
+                    intensity = 0.3 + (0.7 * ratio); 
+                    glowColor = `rgba(0, 255, 136, ${intensity})`;
+                    card.classList.add('active-glow');
+                    imgEl.style.borderColor = 'var(--gain-green)';
+                    
+                    if(user.pct === maxPos && maxPos > 0) {
+                        markerEl.innerText = "🏆 TOP GAINER";
+                        markerEl.style.color = "var(--gain-green)";
+                        markerEl.style.display = "block";
+                    }
+                } else if (isLoss) {
+                    changeTag.className = 'change-tag down';
+                    changeTag.innerText = `▼ ${formatNumber(Math.abs(user.growth))}`;
+                    let absP = Math.abs(user.pct);
+                    let ratio = negPercents.length > 1 ? (absP - minNeg) / (maxNeg - minNeg) : 1;
+                    intensity = 0.3 + (0.7 * ratio);
+                    glowColor = `rgba(255, 0, 60, ${intensity})`;
+                    card.classList.add('active-glow');
+                    imgEl.style.borderColor = 'var(--loss-red)';
+
+                    if(absP === maxNeg && maxNeg > 0) {
+                        markerEl.innerText = "🔻 BIG DROP";
+                        markerEl.style.color = "var(--loss-red)";
+                        markerEl.style.display = "block";
+                    }
+                } else {
+                    changeTag.className = 'change-tag';
+                    changeTag.style.background = 'transparent';
+                    changeTag.style.border = '2px solid rgba(255,255,255,0.1)';
+                    changeTag.style.color = 'var(--text-muted)';
+                    changeTag.innerText = `- 0`;
+                    imgEl.style.borderColor = 'var(--text-muted)';
+                }
+
                 card.style.setProperty('--glow-color', glowColor);
-                markerEl.style.color = p.growth > 0 ? '#00ff88' : (p.growth < 0 ? '#ff3366' : 'var(--text-muted)');
+                card.querySelector('.pct-tag').innerText = `${isLoss ? '-' : '+'}${pctFormatted}`;
             });
         }
 
-        init();
+        window.addEventListener('DOMContentLoaded', init);
+        setInterval(init, 60000); 
     </script>
 </body>
 </html>
