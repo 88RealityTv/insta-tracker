@@ -3,260 +3,250 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>StreamStats Live - Shorts</title>
+    <title>StreamStats Live - Shorts Vertical</title>
     <style>
         :root {
-            --bg-dark: #09090b;
+            --bg-deep: #050507;
             --bg-card: rgba(18, 18, 26, 0.85);
-            --neon-pink: #ff2a6d;
-            --neon-cyan: #05d9e8;
-            --neon-red: #ff003c;
-            --neon-green: #01ffc3;
-            --glass-border: rgba(255, 255, 255, 0.1);
+            --neon-pink: #ff007f;
+            --neon-cyan: #00f3ff;
+            --loss-red: #ff003c;
+            --gain-green: #00ff88;
+            --text-main: #ffffff;
+            --text-muted: #888899;
         }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: system-ui, sans-serif; }
 
         body {
-            background: var(--bg-dark);
-            color: white;
-            font-family: system-ui, -apple-system, sans-serif;
-            margin: 0;
-            padding: 2.5rem 1.5rem;
-            height: 100vh;
-            box-sizing: border-box;
+            background-color: var(--bg-deep);
+            color: var(--text-main);
+            width: 1080px;
+            min-height: 1920px;
+            overflow-y: auto;
+            overflow-x: hidden;
             display: flex;
             flex-direction: column;
-            overflow: hidden;
+            padding: 60px 40px;
+            background: radial-gradient(circle at 50% 20%, rgba(0, 255, 136, 0.05), transparent 50%), var(--bg-deep);
         }
 
-        .controls {
-            background: rgba(10, 10, 15, 0.8);
-            backdrop-filter: blur(15px);
-            border: 2px solid var(--glass-border);
-            padding: 1rem;
-            border-radius: 16px;
+        ::-webkit-scrollbar { width: 10px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: var(--neon-cyan); border-radius: 5px; }
+
+        header {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-bottom: 50px;
+            gap: 30px;
+            z-index: 10;
+        }
+
+        h1 {
+            font-size: 4rem;
+            font-weight: 900;
+            text-transform: uppercase;
+            text-shadow: 0 0 30px rgba(0, 243, 255, 0.6);
+            text-align: center;
+        }
+
+        .slider-wrapper {
+            background: rgba(10, 10, 15, 0.9);
+            padding: 20px 40px;
+            border-radius: 20px;
+            border: 2px solid rgba(0, 243, 255, 0.4);
+            width: 80%;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .slider-labels {
             display: flex;
             justify-content: space-between;
-            margin-bottom: 2rem;
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.8);
+            font-weight: 800;
+            font-size: 1.5rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
         }
 
-        .controls button {
-            background: transparent;
-            color: white;
-            border: 2px solid transparent;
-            padding: 1rem;
-            border-radius: 10px;
-            cursor: pointer;
-            font-weight: 900;
-            font-size: 1.2rem;
-            flex: 1;
-            margin: 0 0.5rem;
-            transition: all 0.3s;
-        }
+        .slider-labels span.active { color: var(--neon-cyan); text-shadow: 0 0 15px var(--neon-cyan); }
+        
+        input[type=range] { -webkit-appearance: none; width: 100%; background: rgba(255, 255, 255, 0.1); height: 12px; border-radius: 6px; outline: none; cursor: pointer; }
+        input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 35px; height: 35px; border-radius: 50%; background: var(--neon-cyan); box-shadow: 0 0 25px var(--neon-cyan); cursor: pointer; }
 
-        .controls button.active {
-            background: var(--neon-cyan);
-            color: var(--bg-dark);
-            box-shadow: 0 0 20px var(--neon-cyan);
-        }
-
-        #leaderboard {
-            display: flex;
-            flex-direction: column;
-            gap: 1.5rem;
-            flex-grow: 1;
-        }
+        #leaderboard { position: relative; width: 100%; transition: height 0.4s ease; }
 
         .card {
+            position: absolute;
+            width: 100%;
+            height: 140px;
             background: var(--bg-card);
-            border: 2px solid var(--glass-border);
+            backdrop-filter: blur(20px);
+            border: 2px solid rgba(0, 243, 255, 0.2);
             border-radius: 20px;
-            padding: 2rem;
             display: flex;
             align-items: center;
-            gap: 2rem;
-            box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+            padding: 0 40px;
+            transition: transform 0.8s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.3s;
+            will-change: transform;
         }
 
-        .card.high-growth {
-            animation: pulse-glow 1.5s infinite alternate;
-            border-color: var(--neon-pink);
+        @keyframes pulse-glow-green {
+            0% { box-shadow: 0 0 25px rgba(0, 255, 136, 0.4); border-color: rgba(0, 255, 136, 0.5); }
+            50% { box-shadow: 0 0 50px rgba(0, 255, 136, 0.8); border-color: var(--gain-green); }
+            100% { box-shadow: 0 0 25px rgba(0, 255, 136, 0.4); border-color: rgba(0, 255, 136, 0.5); }
         }
 
-        @keyframes pulse-glow {
-            0% { box-shadow: 0 0 10px var(--neon-pink), inset 0 0 10px rgba(255, 42, 109, 0.3); }
-            100% { box-shadow: 0 0 40px var(--neon-pink), inset 0 0 30px rgba(255, 42, 109, 0.6); }
-        }
+        @keyframes pulse-loss { 0% { box-shadow: 0 0 20px rgba(255, 0, 60, 0.4); border-color: rgba(255, 0, 60, 0.5); } 100% { box-shadow: 0 0 40px rgba(255, 0, 60, 0.8); border-color: var(--loss-red); } }
 
-        .avatar {
-            width: 120px;
-            height: 120px;
-            border-radius: 50%;
-            object-fit: cover;
-            border: 4px solid var(--neon-cyan);
-        }
+        .card.growth-up { animation: pulse-glow-green 2s infinite; z-index: 5; background: rgba(0, 255, 136, 0.05); }
+        .card.growth-down { animation: pulse-loss 1.5s infinite alternate; background: rgba(255, 0, 60, 0.05); }
 
-        .info {
-            flex-grow: 1;
-        }
-
-        .username {
-            font-size: 1.8rem;
-            font-weight: 800;
-            color: #ddd;
-            margin-bottom: 0.5rem;
-        }
-
-        .count {
-            font-size: 3.5rem;
-            font-weight: 900;
-            line-height: 1;
-            text-shadow: 0 0 15px rgba(255, 255, 255, 0.4);
-        }
-
+        .rank { font-size: 3rem; font-weight: 900; color: rgba(255, 255, 255, 0.3); width: 90px; }
+        .avatar { width: 90px; height: 90px; border-radius: 50%; border: 3px solid var(--neon-cyan); margin-right: 30px; object-fit: cover; }
+        .info { flex-grow: 1; }
+        .username { font-size: 2.2rem; font-weight: 900; }
+        
+        .metrics { display: flex; flex-direction: column; align-items: flex-end; gap: 10px; }
+        .count { font-size: 3.5rem; font-weight: 900; font-variant-numeric: tabular-nums; }
+        
         .change-tag {
-            padding: 1rem 1.5rem;
-            border-radius: 12px;
-            font-weight: 900;
-            font-size: 1.8rem;
+            font-size: 1.8rem; font-weight: 900; padding: 10px 25px; border-radius: 12px;
+            display: flex; align-items: center; gap: 10px;
         }
-
-        .change-tag.positive {
-            background: rgba(1, 255, 195, 0.15);
-            color: var(--neon-green);
-            border: 2px solid var(--neon-green);
-        }
-
-        .change-tag.negative {
-            background: rgba(255, 0, 60, 0.25);
-            color: white;
-            border: 2px solid var(--neon-red);
-            box-shadow: 0 0 25px var(--neon-red);
-        }
+        .pct-tag { font-size: 1.4rem; font-weight: 700; color: var(--text-muted); }
+        .change-tag.up { background: rgba(0, 255, 136, 0.15); color: var(--gain-green); border: 1px solid rgba(0, 255, 136, 0.5); }
+        .change-tag.down { background: rgba(255, 0, 60, 0.2); color: var(--loss-red); border: 1px solid var(--loss-red); }
     </style>
 </head>
 <body>
-
-    <div class="controls">
-        <button data-range="1" class="active">24H</button>
-        <button data-range="3">3D</button>
-        <button data-range="7">7D</button>
-    </div>
+    <header>
+        <h1>Live <span style="color: var(--neon-cyan);">Shorts Tracker</span></h1>
+        <div class="slider-wrapper">
+            <div class="slider-labels">
+                <span id="label-0" class="active">24H</span>
+                <span id="label-1">3D</span>
+                <span id="label-2">7D</span>
+            </div>
+            <input type="range" id="timeSlider" min="0" max="2" step="1" value="0">
+        </div>
+    </header>
 
     <div id="leaderboard"></div>
 
     <script>
-        let rawData = {};
-        
-        function resolveImageUrl(imgPath) {
-            if (imgPath.startsWith('http')) return imgPath;
-            let path = window.location.pathname;
-            if (path.endsWith('.html')) path = path.substring(0, path.lastIndexOf('/'));
-            return window.location.origin + path + '/' + imgPath;
+        let globalDataset = {};
+        let sortedDates = [];
+        const sliderMap = { 0: 1, 1: 3, 2: 7 };
+
+        function resolveImagePath(imgString) {
+            if (!imgString) return 'image_59dec3.jpg';
+            if (imgString.startsWith('http')) return imgString;
+            let basePath = window.location.origin + window.location.pathname;
+            if (basePath.endsWith('.html')) basePath = basePath.substring(0, basePath.lastIndexOf('/'));
+            if (basePath.endsWith('/')) basePath = basePath.slice(0, -1);
+            if (imgString.startsWith('/')) imgString = imgString.substring(1);
+            return `${basePath}/${imgString}`;
         }
 
-        function formatNumber(num) {
-            return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+        function formatNumber(num) { return Math.floor(num).toLocaleString('en-US'); }
+
+        function animateValue(element, start, end, duration) {
+            if (start === end) { element.innerHTML = formatNumber(end); return; }
+            let startTimestamp = null;
+            const step = (timestamp) => {
+                if (!startTimestamp) startTimestamp = timestamp;
+                const progress = Math.min((timestamp - startTimestamp) / duration, 1);
+                const current = (1 - Math.pow(1 - progress, 3)) * (end - start) + start;
+                element.innerHTML = formatNumber(current);
+                if (progress < 1) window.requestAnimationFrame(step);
+                else element.innerHTML = formatNumber(end);
+            };
+            window.requestAnimationFrame(step);
         }
 
         async function init() {
             try {
-                const response = await fetch('data.json');
-                rawData = await response.json();
-                renderData(1);
-            } catch (e) {
-                console.error("Error loading data.json", e);
-            }
-        }
-
-        function renderData(days) {
-            const dates = Object.keys(rawData).sort();
-            if (dates.length === 0) return;
-
-            const latestDate = dates[dates.length - 1];
-            const targetDateIndex = Math.max(0, dates.length - 1 - days);
-            const baselineDate = dates[targetDateIndex];
-
-            const latestData = rawData[latestDate];
-            const baselineData = rawData[baselineDate];
-
-            let stats = [];
-            for (const username in latestData) {
-                const currentCount = latestData[username].count;
-                const img = resolveImageUrl(latestData[username].img);
-                const prevCount = baselineData[username] ? baselineData[username].count : currentCount;
-                const growth = currentCount - prevCount;
-                stats.push({ username, currentCount, growth, img });
-            }
-
-            stats.sort((a, b) => b.growth - a.growth);
-
-            const container = document.getElementById('leaderboard');
-            const oldCards = Array.from(container.children);
-            const oldRects = new Map();
-            oldCards.forEach(card => oldRects.set(card.dataset.user, card.getBoundingClientRect()));
-
-            container.innerHTML = '';
-            const maxGrowth = Math.max(...stats.map(s => s.growth));
-
-            stats.forEach(stat => {
-                const isHighGrowth = stat.growth > 0 && stat.growth === maxGrowth && stat.growth > 1000;
-                const isNegative = stat.growth < 0;
-                const sign = stat.growth > 0 ? '+' : '';
+                const response = await fetch('data.json?t=' + Date.now());
+                globalDataset = await response.json();
+                sortedDates = Object.keys(globalDataset).sort((a, b) => b.localeCompare(a));
                 
-                const card = document.createElement('div');
-                card.className = `card ${isHighGrowth ? 'high-growth' : ''}`;
-                card.dataset.user = stat.username;
-                
-                card.innerHTML = `
-                    <img src="${stat.img}" class="avatar" onerror="this.src='https://ui-avatars.com/api/?name=${stat.username}&background=random'">
-                    <div class="info">
-                        <div class="username">@${stat.username}</div>
-                        <div class="count">${formatNumber(stat.currentCount)}</div>
-                    </div>
-                    <div class="change-tag ${isNegative ? 'negative' : 'positive'}">
-                        ${sign}${formatNumber(stat.growth)}
-                    </div>
-                `;
-                container.appendChild(card);
-            });
-
-            const newCards = Array.from(container.children);
-            newCards.forEach(card => {
-                const oldRect = oldRects.get(card.dataset.user);
-                if (oldRect) {
-                    const newRect = card.getBoundingClientRect();
-                    const dy = oldRect.top - newRect.top;
-                    if (dy !== 0) {
-                        card.style.transform = `translateY(${dy}px)`;
-                        card.style.transition = 'none';
-                        requestAnimationFrame(() => {
-                            card.style.transform = '';
-                            card.style.transition = 'transform 0.6s cubic-bezier(0.25, 1, 0.5, 1)';
-                        });
-                    }
-                } else {
-                    card.style.opacity = 0;
-                    card.style.transform = 'scale(0.9)';
-                    requestAnimationFrame(() => {
-                        card.style.transition = 'all 0.5s ease-out';
-                        card.style.opacity = 1;
-                        card.style.transform = 'scale(1)';
+                if (sortedDates.length > 0) {
+                    document.getElementById('timeSlider').addEventListener('input', (e) => {
+                        const val = parseInt(e.target.value);
+                        updateDashboard(sliderMap[val]);
+                        document.querySelectorAll('.slider-labels span').forEach((el, idx) => el.className = idx === val ? 'active' : '');
                     });
+                    updateDashboard(1, true);
                 }
+            } catch (error) { console.error('Error fetching data:', error); }
+        }
+
+        function updateDashboard(daysBack, isInitialLoad = false) {
+            const latestDate = sortedDates[0];
+            const pastDate = sortedDates[Math.min(daysBack, sortedDates.length - 1)];
+            
+            let leaderArray = [];
+            for (const [username, currentMetrics] of Object.entries(globalDataset[latestDate])) {
+                const currentCount = currentMetrics.count;
+                const pastCount = (globalDataset[pastDate] && globalDataset[pastDate][username]) ? globalDataset[pastDate][username].count : currentCount;
+                const growth = currentCount - pastCount;
+                leaderArray.push({ username, currentCount, pastCount, growth, pct: pastCount === 0 ? 0 : (growth / pastCount) * 100, img: resolveImagePath(currentMetrics.img) });
+            }
+            leaderArray.sort((a, b) => b.currentCount - a.currentCount);
+            renderCards(leaderArray, isInitialLoad);
+        }
+
+        function renderCards(leaderArray, isInitialLoad) {
+            const board = document.getElementById('leaderboard');
+            const cardHeight = 140, gapY = 25; 
+            board.style.height = `${leaderArray.length * (cardHeight + gapY)}px`;
+
+            leaderArray.forEach((user, index) => {
+                let card = document.getElementById(`card-${user.username}`);
+                const isGrowth = user.growth > 0, isLoss = user.growth < 0;
+                
+                if (!card) {
+                    card = document.createElement('div');
+                    card.id = `card-${user.username}`;
+                    card.className = 'card';
+                    card.dataset.prevCount = user.currentCount;
+                    card.innerHTML = `<div class="rank"></div><img class="avatar" src="" onerror="this.src='image_59dec3.jpg'"><div class="info"><div class="username"></div></div><div class="metrics"><div class="count"></div><div class="change-tag"></div><div class="pct-tag"></div></div>`;
+                    board.appendChild(card);
+                    if (isInitialLoad) {
+                        card.style.transform = `translateY(150vh)`;
+                        card.style.opacity = '0';
+                        void card.offsetWidth;
+                        card.style.transition = `transform 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) ${index * 0.08}s, opacity 0.8s ease ${index * 0.08}s`;
+                    }
+                } else if (!isInitialLoad) {
+                    card.style.transition = `transform 0.8s cubic-bezier(0.34, 1.56, 0.64, 1)`;
+                }
+
+                card.style.opacity = '1';
+                card.style.transform = `translateY(${index * (cardHeight + gapY)}px)`;
+                card.className = `card ${isGrowth ? 'growth-up' : (isLoss ? 'growth-down' : '')}`;
+
+                card.querySelector('.rank').innerText = `#${index + 1}`;
+                card.querySelector('.avatar').src = user.img;
+                card.querySelector('.username').innerText = user.username;
+                
+                animateValue(card.querySelector('.count'), parseInt(card.dataset.prevCount) || user.currentCount, user.currentCount, 800);
+                card.dataset.prevCount = user.currentCount;
+
+                const changeTag = card.querySelector('.change-tag');
+                changeTag.className = `change-tag ${isLoss ? 'down' : 'up'}`;
+                changeTag.innerText = `${isLoss ? '▼' : '▲'} ${formatNumber(Math.abs(user.growth))}`;
+                card.querySelector('.pct-tag').innerText = `${isLoss ? '-' : '+'}${Math.abs(user.pct).toFixed(2)}%`;
             });
         }
 
-        document.querySelectorAll('.controls button').forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                document.querySelectorAll('.controls button').forEach(b => b.classList.remove('active'));
-                e.target.classList.add('active');
-                renderData(parseInt(e.target.dataset.range));
-            });
-        });
-
-        init();
-        setInterval(init, 60000);
+        window.addEventListener('DOMContentLoaded', init);
+        setInterval(init, 60000); 
     </script>
 </body>
 </html>
