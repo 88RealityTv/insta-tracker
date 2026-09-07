@@ -32,29 +32,12 @@
             overflow-y: auto;
             display: flex;
             flex-direction: column;
-            align-items: center;
-            padding: 60px 5vw 100px 5vw;
+            align-items: center; 
+            padding: 60px 5vw 100px 5vw; 
             background: 
                 radial-gradient(circle at 50% 10%, rgba(0, 243, 255, 0.1), transparent 40%),
                 radial-gradient(circle at 50% 90%, rgba(255, 0, 127, 0.08), transparent 40%),
                 var(--bg-deep);
-            position: relative;
-        }
-
-        body::before {
-            content: "";
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100vw;
-            height: 100vh;
-            background-image: url('images/1788637665929.png');
-            background-repeat: no-repeat;
-            background-position: center;
-            background-size: cover;
-            opacity: 0.04;
-            pointer-events: none;
-            z-index: 0;
         }
 
         header {
@@ -75,7 +58,10 @@
             text-transform: uppercase;
             letter-spacing: 5px;
             text-shadow: 0 0 30px rgba(0, 243, 255, 0.5);
-            text-align: center;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 25px;
         }
 
         .slider-wrapper {
@@ -142,7 +128,6 @@
             min-width: 800px;
             flex-grow: 1;
             transition: height 0.4s ease;
-            z-index: 5;
         }
 
         .card {
@@ -270,7 +255,10 @@
 <body>
 
     <header>
-        <h1>Live <span style="color: var(--neon-cyan);">Tracker</span></h1>
+        <h1>
+            <img src="images/1788637665929.png" alt="88 Reality Logo" style="height: 90px; width: auto; object-fit: contain; border-radius: 50%;">
+            88 Reality <span style="color: var(--neon-cyan);">Track</span>
+        </h1>
         <div class="slider-wrapper">
             <div class="slider-labels">
                 <span id="label-0" class="active">24 H</span>
@@ -292,7 +280,6 @@
             if (!imgString) return '';
             if (imgString.startsWith('http')) return imgString;
             
-            // Cleanly get the base directory URL regardless of file name or query string
             let basePath = window.location.href.split('?')[0];
             basePath = basePath.substring(0, basePath.lastIndexOf('/'));
             
@@ -371,7 +358,6 @@
             const cardHeight = 160; 
             const gapY = 30; 
             
-            // Calculate exact height needed for the board to enable vertical scrolling
             board.style.height = `${leaderArray.length * (cardHeight + gapY)}px`;
 
             const maxPos = Math.max(...posPercents, 0.01);
