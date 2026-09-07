@@ -32,29 +32,35 @@
             overflow-y: auto;
             display: flex;
             flex-direction: column;
-            align-items: center; /* Center aligns the content */
-            padding: 60px 5vw 100px 5vw; /* Padding on sides (5vw) and bottom (100px) */
+            align-items: center;
+            padding: 60px 5vw 100px 5vw;
             background: 
                 radial-gradient(circle at 50% 10%, rgba(0, 243, 255, 0.1), transparent 40%),
                 radial-gradient(circle at 50% 90%, rgba(255, 0, 127, 0.08), transparent 40%),
                 var(--bg-deep);
+            position: relative;
         }
 
-        .watermark {
+        body::before {
+            content: "";
             position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            width: 600px;
-            opacity: 0.15;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background-image: url('images/1788637665929.png');
+            background-repeat: no-repeat;
+            background-position: center;
+            background-size: cover;
+            opacity: 0.04;
             pointer-events: none;
             z-index: 0;
         }
 
         header {
             width: 100%;
-            max-width: 980px; /* Constrain width for centering */
-            min-width: 800px; /* Enforces horizontal scroll if window shrinks too much */
+            max-width: 980px; 
+            min-width: 800px; 
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -262,8 +268,6 @@
     </style>
 </head>
 <body>
-
-    <img src="1788637665929.png" alt="Watermark" class="watermark">
 
     <header>
         <h1>Live <span style="color: var(--neon-cyan);">Tracker</span></h1>
