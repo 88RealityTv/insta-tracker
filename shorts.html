@@ -2,167 +2,261 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>OBS Mobile View - YouTube Shorts</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>StreamStats Live - Shorts</title>
     <style>
-        * { box-sizing: border-box; margin: 0; padding: 0; }
-        body { 
-            background: #09090b; 
-            color: #ffffff; 
-            font-family: system-ui, sans-serif; 
-            padding: 15px; 
-            width: 100vw; 
-            height: 100vh; 
-            overflow-x: hidden;
-        }
-        
-        /* Mobile Switch Controls */
-        .controls-container {
-            display: flex;
-            justify-content: center;
-            margin-bottom: 20px;
-            margin-top: 5px;
-        }
-        .toggle-wrapper {
-            background: #12121a;
-            padding: 4px;
-            border-radius: 30px;
-            display: inline-flex;
-            border: 1px solid #222232;
-        }
-        .toggle-btn {
-            background: transparent;
-            border: none;
-            color: #71717a;
-            padding: 6px 16px;
-            font-size: 13px;
-            font-weight: 700;
-            cursor: pointer;
-            border-radius: 20px;
-            transition: all 0.2s ease;
-        }
-        .toggle-btn.active {
-            color: #ffffff;
-            background: #ff3e3e; 
-            box-shadow: 0 2px 8px rgba(255, 62, 62, 0.4);
+        :root {
+            --bg-dark: #09090b;
+            --bg-card: rgba(18, 18, 26, 0.85);
+            --neon-pink: #ff2a6d;
+            --neon-cyan: #05d9e8;
+            --neon-red: #ff003c;
+            --neon-green: #01ffc3;
+            --glass-border: rgba(255, 255, 255, 0.1);
         }
 
-        .list-container { display: flex; flex-direction: column; gap: 10px; }
-        .list-item { 
-            background: #12121a; padding: 12px; border-radius: 10px; 
-            border: 1px solid #222232; display: flex; align-items: center; justify-content: space-between;
+        body {
+            background: var(--bg-dark);
+            color: white;
+            font-family: system-ui, -apple-system, sans-serif;
+            margin: 0;
+            padding: 2.5rem 1.5rem;
+            height: 100vh;
+            box-sizing: border-box;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
         }
-        .left-block { display: flex; align-items: center; gap: 12px; min-width: 0; }
-        .profile-img { width: 46px; height: 46px; border-radius: 50%; border: 2px solid #ff3e3e; object-fit: cover; flex-shrink: 0; }
-        .name { font-size: 15px; font-weight: 700; color: #f3f4f6; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .count { font-size: 18px; font-weight: 800; color: #ffffff; margin-top: 1px; }
-        .right-block { text-align: right; min-width: 100px; flex-shrink: 0; }
-        .trend-box { font-size: 13px; font-weight: 700; }
-        .trend-lbl { color: #52525b; font-weight: 500; font-size: 11px; display: block; margin-bottom: 2px; }
-        .up { color: #22c55e; }
-        .down { color: #ef4444; }
-        .neutral { color: #71717a; }
+
+        .controls {
+            background: rgba(10, 10, 15, 0.8);
+            backdrop-filter: blur(15px);
+            border: 2px solid var(--glass-border);
+            padding: 1rem;
+            border-radius: 16px;
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 2rem;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.8);
+        }
+
+        .controls button {
+            background: transparent;
+            color: white;
+            border: 2px solid transparent;
+            padding: 1rem;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: 900;
+            font-size: 1.2rem;
+            flex: 1;
+            margin: 0 0.5rem;
+            transition: all 0.3s;
+        }
+
+        .controls button.active {
+            background: var(--neon-cyan);
+            color: var(--bg-dark);
+            box-shadow: 0 0 20px var(--neon-cyan);
+        }
+
+        #leaderboard {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+            flex-grow: 1;
+        }
+
+        .card {
+            background: var(--bg-card);
+            border: 2px solid var(--glass-border);
+            border-radius: 20px;
+            padding: 2rem;
+            display: flex;
+            align-items: center;
+            gap: 2rem;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+        }
+
+        .card.high-growth {
+            animation: pulse-glow 1.5s infinite alternate;
+            border-color: var(--neon-pink);
+        }
+
+        @keyframes pulse-glow {
+            0% { box-shadow: 0 0 10px var(--neon-pink), inset 0 0 10px rgba(255, 42, 109, 0.3); }
+            100% { box-shadow: 0 0 40px var(--neon-pink), inset 0 0 30px rgba(255, 42, 109, 0.6); }
+        }
+
+        .avatar {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 4px solid var(--neon-cyan);
+        }
+
+        .info {
+            flex-grow: 1;
+        }
+
+        .username {
+            font-size: 1.8rem;
+            font-weight: 800;
+            color: #ddd;
+            margin-bottom: 0.5rem;
+        }
+
+        .count {
+            font-size: 3.5rem;
+            font-weight: 900;
+            line-height: 1;
+            text-shadow: 0 0 15px rgba(255, 255, 255, 0.4);
+        }
+
+        .change-tag {
+            padding: 1rem 1.5rem;
+            border-radius: 12px;
+            font-weight: 900;
+            font-size: 1.8rem;
+        }
+
+        .change-tag.positive {
+            background: rgba(1, 255, 195, 0.15);
+            color: var(--neon-green);
+            border: 2px solid var(--neon-green);
+        }
+
+        .change-tag.negative {
+            background: rgba(255, 0, 60, 0.25);
+            color: white;
+            border: 2px solid var(--neon-red);
+            box-shadow: 0 0 25px var(--neon-red);
+        }
     </style>
 </head>
 <body>
 
-    <div class="controls-container">
-        <div class="toggle-wrapper">
-            <button class="toggle-btn active" onclick="changeRange(1, this)">24H</button>
-            <button class="toggle-btn" onclick="changeRange(3, this)">3 Days</button>
-            <button class="toggle-btn" onclick="changeRange(7, this)">7 Days</button>
-        </div>
+    <div class="controls">
+        <button data-range="1" class="active">24H</button>
+        <button data-range="3">3D</button>
+        <button data-range="7">7D</button>
     </div>
 
-    <div class="list-container" id="shorts-dashboard">Loading mobile data...</div>
+    <div id="leaderboard"></div>
 
     <script>
-        let globalData = {};
-        let currentDaysOffset = 1;
-
-        // Base URL logic to correctly map relative image directories on YouTube Shorts view
-        const currentPath = window.location.pathname;
-        const directoryPath = currentPath.substring(0, currentPath.lastIndexOf('/') + 1);
-        const baseUrl = window.location.origin + directoryPath;
-
-        function formatNum(n) { return n ? n.toLocaleString() : '0'; }
+        let rawData = {};
         
-        function getTrendHTML(today, past) {
-            if (today === undefined || past === undefined) return `<span class="neutral">--</span>`;
-            const diff = today - past;
-            if (diff > 0) return `<span class="up">+${formatNum(diff)}</span>`;
-            if (diff < 0) return `<span class="down">${formatNum(diff)}</span>`;
-            return `<span class="neutral">0</span>`;
+        function resolveImageUrl(imgPath) {
+            if (imgPath.startsWith('http')) return imgPath;
+            let path = window.location.pathname;
+            if (path.endsWith('.html')) path = path.substring(0, path.lastIndexOf('/'));
+            return window.location.origin + path + '/' + imgPath;
         }
 
-        function changeRange(days, element) {
-            document.querySelectorAll('.toggle-btn').forEach(btn => btn.classList.remove('active'));
-            element.classList.add('active');
-            currentDaysOffset = days;
-            renderDashboard();
-        }
-
-        function renderDashboard() {
-            const dates = Object.keys(globalData).sort();
-            if (dates.length === 0) return;
-
-            const todayIndex = dates.length - 1;
-            const pastIndex = Math.max(0, todayIndex - currentDaysOffset);
-
-            const todayDate = dates[todayIndex];
-            const pastDate = dates[pastIndex];
-
-            const tData = globalData[todayDate];
-            const pData = (pastIndex !== todayIndex) ? globalData[pastDate] : {};
-            
-            const container = document.getElementById('shorts-dashboard');
-            container.innerHTML = '';
-
-            const rangeLabels = { 1: "24H Change", 3: "3D Change", 7: "7D Change" };
-
-            for (const user in tData) {
-                const cur = tData[user].count;
-                let imgUrl = tData[user].img || '';
-                const pastVal = pData[user] ? pData[user].count : undefined;
-
-                // Format file links to use absolute project directories
-                if (imgUrl && !imgUrl.startsWith('http') && !imgUrl.startsWith('data:')) {
-                    if (imgUrl.startsWith('./')) {
-                        imgUrl = imgUrl.substring(2);
-                    }
-                    imgUrl = baseUrl + imgUrl;
-                } else if (!imgUrl) {
-                    imgUrl = 'https://placeholder.com';
-                }
-
-                const row = document.createElement('div');
-                row.className = 'list-item';
-                row.innerHTML = `
-                    <div class="left-block">
-                        <img class="profile-img" src="${imgUrl}" alt="${user}" onerror="this.src='https://placeholder.com'">
-                        <div>
-                            <div class="name">${user}</div>
-                            <div class="count">${formatNum(cur)}</div>
-                        </div>
-                    </div>
-                    <div class="right-block">
-                        <span class="trend-lbl">${rangeLabels[currentDaysOffset]}</span>
-                        <div class="trend-box">${getTrendHTML(cur, pastVal)}</div>
-                    </div>
-                `;
-                container.appendChild(row);
-            }
+        function formatNumber(num) {
+            return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
         }
 
         async function init() {
             try {
-                const res = await fetch('data.json');
-                globalData = await res.json();
-                renderDashboard();
-            } catch (e) { 
-                document.getElementById('shorts-dashboard').innerText = "Error loading data."; 
+                const response = await fetch('data.json');
+                rawData = await response.json();
+                renderData(1);
+            } catch (e) {
+                console.error("Error loading data.json", e);
             }
         }
+
+        function renderData(days) {
+            const dates = Object.keys(rawData).sort();
+            if (dates.length === 0) return;
+
+            const latestDate = dates[dates.length - 1];
+            const targetDateIndex = Math.max(0, dates.length - 1 - days);
+            const baselineDate = dates[targetDateIndex];
+
+            const latestData = rawData[latestDate];
+            const baselineData = rawData[baselineDate];
+
+            let stats = [];
+            for (const username in latestData) {
+                const currentCount = latestData[username].count;
+                const img = resolveImageUrl(latestData[username].img);
+                const prevCount = baselineData[username] ? baselineData[username].count : currentCount;
+                const growth = currentCount - prevCount;
+                stats.push({ username, currentCount, growth, img });
+            }
+
+            stats.sort((a, b) => b.growth - a.growth);
+
+            const container = document.getElementById('leaderboard');
+            const oldCards = Array.from(container.children);
+            const oldRects = new Map();
+            oldCards.forEach(card => oldRects.set(card.dataset.user, card.getBoundingClientRect()));
+
+            container.innerHTML = '';
+            const maxGrowth = Math.max(...stats.map(s => s.growth));
+
+            stats.forEach(stat => {
+                const isHighGrowth = stat.growth > 0 && stat.growth === maxGrowth && stat.growth > 1000;
+                const isNegative = stat.growth < 0;
+                const sign = stat.growth > 0 ? '+' : '';
+                
+                const card = document.createElement('div');
+                card.className = `card ${isHighGrowth ? 'high-growth' : ''}`;
+                card.dataset.user = stat.username;
+                
+                card.innerHTML = `
+                    <img src="${stat.img}" class="avatar" onerror="this.src='https://ui-avatars.com/api/?name=${stat.username}&background=random'">
+                    <div class="info">
+                        <div class="username">@${stat.username}</div>
+                        <div class="count">${formatNumber(stat.currentCount)}</div>
+                    </div>
+                    <div class="change-tag ${isNegative ? 'negative' : 'positive'}">
+                        ${sign}${formatNumber(stat.growth)}
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+
+            const newCards = Array.from(container.children);
+            newCards.forEach(card => {
+                const oldRect = oldRects.get(card.dataset.user);
+                if (oldRect) {
+                    const newRect = card.getBoundingClientRect();
+                    const dy = oldRect.top - newRect.top;
+                    if (dy !== 0) {
+                        card.style.transform = `translateY(${dy}px)`;
+                        card.style.transition = 'none';
+                        requestAnimationFrame(() => {
+                            card.style.transform = '';
+                            card.style.transition = 'transform 0.6s cubic-bezier(0.25, 1, 0.5, 1)';
+                        });
+                    }
+                } else {
+                    card.style.opacity = 0;
+                    card.style.transform = 'scale(0.9)';
+                    requestAnimationFrame(() => {
+                        card.style.transition = 'all 0.5s ease-out';
+                        card.style.opacity = 1;
+                        card.style.transform = 'scale(1)';
+                    });
+                }
+            });
+        }
+
+        document.querySelectorAll('.controls button').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                document.querySelectorAll('.controls button').forEach(b => b.classList.remove('active'));
+                e.target.classList.add('active');
+                renderData(parseInt(e.target.dataset.range));
+            });
+        });
+
         init();
+        setInterval(init, 60000);
     </script>
 </body>
 </html>
