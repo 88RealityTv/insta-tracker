@@ -1,151 +1,492 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=1080, height=1920, initial-scale=1.0">
-<title>StreamStats - Shorts</title>
-<style>
-  :root {
-    --bg: #09090b;
-    --card-bg: rgba(18, 18, 26, 0.85);
-    --neon-pink: #ff007f;
-    --neon-cyan: #00f3ff;
-    --neon-red: #ff3333;
-    --neon-green: #00ff66;
-  }
-  * { box-sizing: border-box; margin: 0; padding: 0; font-family: system-ui, sans-serif; }
-  
-  /* Fix for OBS scrolling: Allow Y-scroll, style webkit scrollbar */
-  body { 
-    background-color: var(--bg); 
-    color: #fff; 
-    width: 1080px; 
-    min-height: 1920px;
-    overflow-x: hidden;
-    overflow-y: auto; 
-    padding: 60px 40px;
-    background: linear-gradient(180deg, #1a1a24 0%, var(--bg) 100%);
-  }
-  
-  ::-webkit-scrollbar { width: 12px; }
-  ::-webkit-scrollbar-track { background: var(--bg); }
-  ::-webkit-scrollbar-thumb { background: var(--neon-pink); border-radius: 6px; }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>StreamStats Live - YouTube Shorts</title>
+    <style>
+        :root {
+            --bg-deep: #09090b;
+            --bg-card: rgba(18, 18, 26, 0.85);
+            --neon-pink: #ff007f;
+            --neon-cyan: #00f3ff;
+            --loss-red: #ff003c;
+            --gain-green: #00ff88;
+            --text-main: #ffffff;
+            --text-muted: #888899;
+        }
 
-  .header { display: flex; flex-direction: column; align-items: center; gap: 30px; margin-bottom: 50px; }
-  .title { font-size: 3.5rem; font-weight: 900; text-transform: uppercase; text-shadow: 0 0 15px var(--neon-cyan); }
-  .controls { display: flex; gap: 20px; background: rgba(255,255,255,0.05); padding: 15px; border-radius: 20px; }
-  .controls button { 
-    background: transparent; color: #aaa; border: none; padding: 15px 30px; font-size: 1.8rem; font-weight: bold; 
-    border-radius: 12px; cursor: pointer; transition: 0.3s; 
-  }
-  .controls button.active { background: var(--neon-pink); color: #fff; box-shadow: 0 0 20px var(--neon-pink); }
-  
-  .leaderboard { display: flex; flex-direction: column; gap: 25px; position: relative; }
-  
-  .card { 
-    background: var(--card-bg); border: 2px solid rgba(255,255,255,0.1); border-radius: 24px; 
-    padding: 30px; display: flex; align-items: center; gap: 30px;
-    backdrop-filter: blur(15px); transition: transform 0.5s ease, order 0.5s;
-  }
-  .card.pulse-glow { animation: pulseGain 1.5s infinite alternate; border-color: var(--neon-cyan); }
-  .card.loss-glow { border-color: var(--neon-red); background: rgba(255, 51, 51, 0.05); }
-  
-  @keyframes pulseGain { 0% { box-shadow: 0 0 10px rgba(0, 243, 255, 0.3); } 100% { box-shadow: 0 0 30px rgba(0, 243, 255, 1); } }
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        }
 
-  .rank { font-size: 2.5rem; font-weight: 900; color: #555; width: 60px; text-align: center; }
-  .avatar { width: 140px; height: 140px; border-radius: 50%; object-fit: cover; border: 3px solid #333; }
-  .info { flex-grow: 1; }
-  .username { font-size: 2.5rem; font-weight: 800; margin-bottom: 10px; }
-  .count { font-size: 3rem; font-weight: 900; }
-  .change { font-size: 2rem; font-weight: bold; padding: 10px 20px; border-radius: 12px; }
-  .change.up { color: var(--neon-green); background: rgba(0, 255, 102, 0.15); box-shadow: inset 0 0 10px rgba(0, 255, 102, 0.2); }
-  .change.down { color: var(--neon-red); background: rgba(255, 51, 51, 0.15); box-shadow: inset 0 0 10px rgba(255, 51, 51, 0.2); }
-</style>
+        /* Added Custom Scrollbar for OBS Interact Window */
+        ::-webkit-scrollbar {
+            width: 14px;
+        }
+        ::-webkit-scrollbar-track {
+            background: var(--bg-deep);
+        }
+        ::-webkit-scrollbar-thumb {
+            background: rgba(0, 243, 255, 0.4);
+            border-radius: 7px;
+            border: 2px solid var(--bg-deep);
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(0, 243, 255, 0.8);
+        }
+
+        body {
+            background-color: var(--bg-deep);
+            color: var(--text-main);
+            width: 100%;
+            min-height: 100vh;
+            overflow-x: hidden; /* Prevent horizontal scrolling */
+            overflow-y: scroll; /* Force vertical scrollbar for OBS */
+            display: flex;
+            flex-direction: column;
+            align-items: center; 
+            padding: 60px 5vw 100px 5vw; 
+            background: 
+                radial-gradient(circle at 50% 10%, rgba(0, 243, 255, 0.1), transparent 40%),
+                radial-gradient(circle at 50% 90%, rgba(255, 0, 127, 0.08), transparent 40%),
+                var(--bg-deep);
+        }
+
+        header {
+            width: 100%;
+            max-width: 100%; /* Fit exactly inside 1080px */
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 40px;
+            margin-bottom: 60px;
+            z-index: 10;
+        }
+
+        h1 {
+            font-size: 4.5rem;
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: 5px;
+            text-shadow: 0 0 30px rgba(0, 243, 255, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 25px;
+        }
+
+        .slider-wrapper {
+            background: rgba(10, 10, 15, 0.9);
+            padding: 20px 40px;
+            border-radius: 20px;
+            border: 2px solid rgba(0, 243, 255, 0.3);
+            box-shadow: 0 0 30px rgba(0, 243, 255, 0.15);
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            backdrop-filter: blur(12px);
+        }
+
+        .slider-labels {
+            display: flex;
+            justify-content: space-between;
+            font-weight: 800;
+            font-size: 1.5rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+        }
+
+        .slider-labels span {
+            width: 33%;
+            text-align: center;
+            transition: color 0.3s, text-shadow 0.3s;
+        }
+
+        .slider-labels span.active {
+            color: var(--neon-cyan);
+            text-shadow: 0 0 15px var(--neon-cyan);
+        }
+
+        input[type=range] {
+            -webkit-appearance: none;
+            width: 100%;
+            background: rgba(255, 255, 255, 0.15);
+            height: 12px;
+            border-radius: 6px;
+            outline: none;
+            position: relative;
+            cursor: pointer;
+        }
+
+        input[type=range]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            background: var(--neon-cyan);
+            box-shadow: 0 0 20px var(--neon-cyan);
+            cursor: pointer;
+            transition: transform 0.1s;
+        }
+
+        input[type=range]::-webkit-slider-thumb:hover { transform: scale(1.15); }
+
+        #leaderboard {
+            position: relative;
+            width: 100%;
+            max-width: 100%; /* Fit exactly inside 1080px */
+            flex-grow: 1;
+            transition: height 0.4s ease;
+        }
+
+        .card {
+            position: absolute;
+            height: 160px;
+            width: 100%;
+            background: var(--bg-card);
+            backdrop-filter: blur(25px);
+            border: 2px solid rgba(255, 255, 255, 0.05);
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            padding: 0 40px;
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.9);
+            will-change: transform, opacity;
+        }
+
+        @keyframes pulse-glow {
+            0% { box-shadow: 0 0 10px var(--glow-color), inset 0 0 5px var(--glow-color); }
+            50% { box-shadow: 0 0 35px var(--glow-color), inset 0 0 15px var(--glow-color); }
+            100% { box-shadow: 0 0 10px var(--glow-color), inset 0 0 5px var(--glow-color); }
+        }
+
+        .card.active-glow {
+            border-color: var(--glow-color);
+            animation: pulse-glow 2s infinite ease-in-out;
+        }
+
+        .marker {
+            position: absolute;
+            top: -20px;
+            right: 40px;
+            background: var(--bg-deep);
+            border: 3px solid var(--glow-color);
+            color: var(--text-main);
+            font-size: 1.2rem;
+            font-weight: 900;
+            padding: 6px 20px;
+            border-radius: 25px;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.6);
+            z-index: 5;
+            display: none;
+            text-transform: uppercase;
+        }
+
+        .rank {
+            font-size: 3.5rem;
+            font-weight: 900;
+            color: rgba(255, 255, 255, 0.2);
+            width: 100px;
+            font-style: italic;
+        }
+
+        .avatar {
+            width: 110px;
+            height: 110px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 3px solid var(--text-muted);
+            margin-right: 30px;
+        }
+
+        .info {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .username {
+            font-size: 2.8rem;
+            font-weight: 800;
+            white-space: nowrap;
+            text-overflow: ellipsis;
+            overflow: hidden;
+        }
+
+        .metrics {
+            display: flex;
+            align-items: center;
+            gap: 30px;
+            margin-left: 20px;
+        }
+
+        .count {
+            font-size: 4rem;
+            font-weight: 900;
+            font-variant-numeric: tabular-nums;
+            min-width: 250px;
+            text-align: right;
+        }
+
+        .stats-col {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            gap: 8px;
+            min-width: 180px;
+        }
+
+        .change-tag {
+            font-size: 1.8rem;
+            font-weight: 900;
+            padding: 8px 20px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            justify-content: flex-end;
+            width: 100%;
+            font-variant-numeric: tabular-nums;
+        }
+
+        .pct-tag {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: var(--text-muted);
+        }
+
+        .change-tag.up { background: rgba(0, 255, 136, 0.15); color: var(--gain-green); border: 2px solid rgba(0, 255, 136, 0.5); }
+        .change-tag.down { background: rgba(255, 0, 60, 0.2); color: var(--loss-red); border: 2px solid var(--loss-red); }
+
+    </style>
 </head>
 <body>
 
-<div class="header">
-  <div class="title">Creator Race</div>
-  <div class="controls" id="controls">
-    <button class="active" data-range="1">24 Hours</button>
-    <button data-range="3">3 Days</button>
-    <button data-range="7">7 Days</button>
-  </div>
-</div>
-
-<div class="leaderboard" id="leaderboard"></div>
-
-<script>
-  let rawData = {};
-  let currentRange = 1;
-  const basePath = window.location.origin + window.location.pathname.replace(/\/[^\/]*$/, '/');
-
-  async function init() {
-    try {
-      const response = await fetch('data.json');
-      rawData = await response.json();
-      renderStats();
-    } catch (e) { console.error("Dataset load failed", e); }
-  }
-
-  document.getElementById('controls').addEventListener('click', (e) => {
-    if(e.target.tagName === 'BUTTON') {
-      document.querySelectorAll('.controls button').forEach(b => b.classList.remove('active'));
-      e.target.classList.add('active');
-      currentRange = parseInt(e.target.getAttribute('data-range'));
-      renderStats();
-    }
-  });
-
-  function renderStats() {
-    const dates = Object.keys(rawData).sort();
-    if(dates.length === 0) return;
-
-    const latestDate = dates[dates.length - 1];
-    const pastDateIndex = Math.max(0, dates.length - 1 - currentRange);
-    const pastDate = dates[pastDateIndex];
-
-    const currentData = rawData[latestDate];
-    const pastData = rawData[pastDate];
-
-    let stats = [];
-    for (const [user, data] of Object.entries(currentData)) {
-      const pastCount = pastData[user] ? pastData[user].count : data.count;
-      const growth = data.count - pastCount;
-      stats.push({ user, current: data.count, growth, img: data.img });
-    }
-
-    stats.sort((a, b) => b.growth - a.growth || b.current - a.current);
-    
-    const board = document.getElementById('leaderboard');
-    board.innerHTML = '';
-
-    stats.forEach((stat, index) => {
-      const isUp = stat.growth > 0;
-      const isDown = stat.growth < 0;
-      const isHighGrowth = stat.growth > 1000; 
-
-      const card = document.createElement('div');
-      card.className = `card ${isHighGrowth ? 'pulse-glow' : ''} ${isDown ? 'loss-glow' : ''}`;
-      
-      const imgSrc = stat.img.startsWith('http') ? stat.img : basePath + stat.img;
-      const changeText = isUp ? `+${stat.growth.toLocaleString()}` : isDown ? stat.growth.toLocaleString() : '0';
-      const changeClass = isUp ? 'up' : isDown ? 'down' : '';
-
-      card.innerHTML = `
-        <div class="rank">#${index + 1}</div>
-        <img src="${imgSrc}" class="avatar" alt="${stat.user}">
-        <div class="info">
-          <div class="username">@${stat.user}</div>
-          <div class="count">${stat.current.toLocaleString()}</div>
+    <header>
+        <h1>
+            <img src="images/1788637665929.png" alt="88 Reality Logo" style="height: 90px; width: auto; object-fit: contain; border-radius: 50%;">
+            88 Reality <span style="color: var(--neon-cyan);">Track</span>
+        </h1>
+        <div class="slider-wrapper">
+            <div class="slider-labels">
+                <span id="label-0" class="active">24 H</span>
+                <span id="label-1">3 Days</span>
+                <span id="label-2">7 Days</span>
+            </div>
+            <input type="range" id="timeSlider" min="0" max="2" step="1" value="0">
         </div>
-        <div class="change ${changeClass}">${changeText}</div>
-      `;
-      board.appendChild(card);
-    });
-  }
+    </header>
 
-  init();
-</script>
+    <div id="leaderboard"></div>
+
+    <script>
+        let globalDataset = {};
+        let sortedDates = [];
+        const sliderMap = { 0: 1, 1: 3, 2: 7 };
+
+        function resolveImagePath(imgString) {
+            if (!imgString) return '';
+            if (imgString.startsWith('http')) return imgString;
+            
+            let basePath = window.location.href.split('?')[0];
+            basePath = basePath.substring(0, basePath.lastIndexOf('/'));
+            
+            if (imgString.startsWith('/')) imgString = imgString.substring(1);
+            return `${basePath}/${imgString}`;
+        }
+
+        function formatNumber(num) { return Math.floor(num).toLocaleString('en-US'); }
+
+        function animateValue(element, start, end, duration) {
+            if (start === end) {
+                element.innerHTML = formatNumber(end);
+                return;
+            }
+            let startTimestamp = null;
+            const step = (timestamp) => {
+                if (!startTimestamp) startTimestamp = timestamp;
+                const progress = Math.min((timestamp - startTimestamp) / duration, 1);
+                const easeProgress = 1 - Math.pow(1 - progress, 3);
+                const current = (easeProgress * (end - start) + start);
+                element.innerHTML = formatNumber(current);
+                if (progress < 1) window.requestAnimationFrame(step);
+                else element.innerHTML = formatNumber(end);
+            };
+            window.requestAnimationFrame(step);
+        }
+
+        async function init() {
+            try {
+                const response = await fetch('data.json?t=' + Date.now());
+                globalDataset = await response.json();
+                sortedDates = Object.keys(globalDataset).sort((a, b) => b.localeCompare(a));
+                
+                if (sortedDates.length > 0) {
+                    document.getElementById('timeSlider').addEventListener('input', (e) => {
+                        const val = parseInt(e.target.value);
+                        updateDashboard(sliderMap[val]);
+                        document.querySelectorAll('.slider-labels span').forEach((el, idx) => {
+                            el.className = idx === val ? 'active' : '';
+                        });
+                    });
+                    updateDashboard(1, true); 
+                }
+            } catch (error) { console.error('Error fetching data:', error); }
+        }
+
+        function updateDashboard(daysBack, isInitialLoad = false) {
+            const latestDate = sortedDates[0];
+            const targetIndex = Math.min(daysBack, sortedDates.length - 1);
+            const pastDate = sortedDates[targetIndex];
+            
+            let leaderArray = [];
+            let posPercents = [];
+            let negPercents = [];
+
+            for (const [username, currentMetrics] of Object.entries(globalDataset[latestDate])) {
+                const currentCount = currentMetrics.count;
+                const pastCount = (globalDataset[pastDate] && globalDataset[pastDate][username]) ? globalDataset[pastDate][username].count : currentCount;
+                const growth = currentCount - pastCount;
+                const pct = pastCount === 0 ? 0 : (growth / pastCount) * 100;
+
+                if(pct > 0) posPercents.push(pct);
+                if(pct < 0) negPercents.push(Math.abs(pct));
+
+                leaderArray.push({
+                    username, currentCount, pastCount, growth, pct, img: resolveImagePath(currentMetrics.img)
+                });
+            }
+
+            leaderArray.sort((a, b) => b.currentCount - a.currentCount);
+            renderCards(leaderArray, posPercents, negPercents, isInitialLoad);
+        }
+
+        function renderCards(leaderArray, posPercents, negPercents, isInitialLoad) {
+            const board = document.getElementById('leaderboard');
+            const cardHeight = 160; 
+            const gapY = 30; 
+            
+            board.style.height = `${leaderArray.length * (cardHeight + gapY)}px`;
+
+            const maxPos = Math.max(...posPercents, 0.01);
+            const minPos = Math.min(...posPercents, 0);
+            const maxNeg = Math.max(...negPercents, 0.01);
+            const minNeg = Math.min(...negPercents, 0);
+
+            leaderArray.forEach((user, index) => {
+                let card = document.getElementById(`card-${user.username}`);
+                let isNewCard = false;
+                
+                const isGrowth = user.growth > 0;
+                const isLoss = user.growth < 0;
+                const pctFormatted = Math.abs(user.pct).toFixed(2) + '%';
+                
+                if (!card) {
+                    isNewCard = true;
+                    card = document.createElement('div');
+                    card.id = `card-${user.username}`;
+                    card.className = 'card';
+                    card.dataset.prevCount = user.currentCount; 
+                    
+                    card.innerHTML = `
+                        <div class="marker"></div>
+                        <div class="rank"></div>
+                        <img class="avatar" src="" alt="">
+                        <div class="info"><div class="username"></div></div>
+                        <div class="metrics">
+                            <div class="count"></div>
+                            <div class="stats-col">
+                                <div class="change-tag"></div>
+                                <div class="pct-tag"></div>
+                            </div>
+                        </div>
+                    `;
+                    board.appendChild(card);
+                }
+
+                const yOffset = `${index * (cardHeight + gapY)}px`;
+                
+                if (isNewCard && isInitialLoad) {
+                    card.style.transform = `translate(0px, 150vh)`;
+                    card.style.opacity = '0';
+                    void card.offsetWidth; 
+                    card.style.transition = `transform 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) ${index * 0.08}s, opacity 0.8s ease ${index * 0.08}s, box-shadow 0.3s`;
+                } else if (!isInitialLoad) {
+                    card.style.transition = `transform 0.8s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.3s`;
+                }
+
+                card.style.opacity = '1';
+                card.style.transform = `translate(0px, ${yOffset})`;
+
+                card.querySelector('.rank').innerText = `#${index + 1}`;
+                const imgEl = card.querySelector('.avatar');
+                if(imgEl.src !== user.img) imgEl.src = user.img;
+                card.querySelector('.username').innerText = user.username; 
+
+                const countEl = card.querySelector('.count');
+                const prevCount = parseInt(card.dataset.prevCount) || user.currentCount;
+                animateValue(countEl, prevCount, user.currentCount, 800);
+                card.dataset.prevCount = user.currentCount;
+
+                const changeTag = card.querySelector('.change-tag');
+                const markerEl = card.querySelector('.marker');
+                let glowColor = 'rgba(255,255,255,0.05)';
+                let intensity;
+
+                card.classList.remove('active-glow');
+                markerEl.style.display = 'none';
+
+                if (isGrowth) {
+                    changeTag.className = 'change-tag up';
+                    changeTag.innerText = `▲ ${formatNumber(Math.abs(user.growth))}`;
+                    let ratio = posPercents.length > 1 ? (user.pct - minPos) / (maxPos - minPos) : 1;
+                    intensity = 0.3 + (0.7 * ratio); 
+                    glowColor = `rgba(0, 255, 136, ${intensity})`;
+                    card.classList.add('active-glow');
+                    imgEl.style.borderColor = 'var(--gain-green)';
+                    
+                    if(user.pct === maxPos && maxPos > 0) {
+                        markerEl.innerText = "🏆 TOP GAINER";
+                        markerEl.style.color = "var(--gain-green)";
+                        markerEl.style.display = "block";
+                    }
+                } else if (isLoss) {
+                    changeTag.className = 'change-tag down';
+                    changeTag.innerText = `▼ ${formatNumber(Math.abs(user.growth))}`;
+                    let absP = Math.abs(user.pct);
+                    let ratio = negPercents.length > 1 ? (absP - minNeg) / (maxNeg - minNeg) : 1;
+                    intensity = 0.3 + (0.7 * ratio);
+                    glowColor = `rgba(255, 0, 60, ${intensity})`;
+                    card.classList.add('active-glow');
+                    imgEl.style.borderColor = 'var(--loss-red)';
+
+                    if(absP === maxNeg && maxNeg > 0) {
+                        markerEl.innerText = "🔻 BIG DROP";
+                        markerEl.style.color = "var(--loss-red)";
+                        markerEl.style.display = "block";
+                    }
+                } else {
+                    changeTag.className = 'change-tag';
+                    changeTag.style.background = 'transparent';
+                    changeTag.style.border = '2px solid rgba(255,255,255,0.1)';
+                    changeTag.style.color = 'var(--text-muted)';
+                    changeTag.innerText = `- 0`;
+                    imgEl.style.borderColor = 'var(--text-muted)';
+                }
+
+                card.style.setProperty('--glow-color', glowColor);
+                card.querySelector('.pct-tag').innerText = `${isLoss ? '-' : '+'}${pctFormatted}`;
+            });
+        }
+
+        window.addEventListener('DOMContentLoaded', init);
+        setInterval(init, 60000); 
+    </script>
 </body>
 </html>
