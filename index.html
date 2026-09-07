@@ -32,11 +32,28 @@
             overflow-y: auto;
             display: flex;
             flex-direction: column;
-            padding: 50px 5vw 100px 5vw; /* Padding on sides (5vw) and bottom (100px) */
+            padding: 50px 5vw 100px 5vw;
             background: 
                 radial-gradient(circle at 10% 20%, rgba(0, 243, 255, 0.08), transparent 30%),
                 radial-gradient(circle at 90% 80%, rgba(255, 0, 127, 0.05), transparent 30%),
                 var(--bg-deep);
+            position: relative;
+        }
+
+        body::before {
+            content: "";
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background-image: url('images/1788637665929.png');
+            background-repeat: no-repeat;
+            background-position: center;
+            background-size: cover;
+            opacity: 0.04;
+            pointer-events: none;
+            z-index: 0;
         }
 
         header {
@@ -120,9 +137,10 @@
         #leaderboard {
             position: relative;
             width: 100%;
-            min-width: 900px; /* Enforces horizontal scroll if window shrinks too much */
+            min-width: 900px; 
             flex-grow: 1;
             transition: height 0.4s ease;
+            z-index: 5;
         }
 
         .card {
