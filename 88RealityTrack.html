@@ -1,146 +1,228 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>88 Reality Track</title>
-<style>
-  :root {
-    --bg-dark: #09090b;
-    --card-bg: rgba(18, 18, 26, 0.75);
-    --neon-pink: #ff007f;
-    --neon-cyan: #00f3ff;
-    --neon-red: #ff3333;
-    --neon-green: #00ff66;
-    --text-main: #ffffff;
-  }
-  body {
-    margin: 0; padding: 40px;
-    background: var(--bg-dark);
-    color: var(--text-main);
-    font-family: system-ui, -apple-system, sans-serif;
-    width: 1920px; height: 1080px; box-sizing: border-box;
-    overflow: hidden;
-  }
-  header {
-    display: flex; align-items: center; gap: 20px;
-    margin-bottom: 40px; padding-bottom: 20px;
-    border-bottom: 2px solid var(--neon-cyan);
-  }
-  .logo { width: 80px; height: 80px; border-radius: 50%; border: 2px solid var(--neon-cyan); object-fit: cover; }
-  h1 { font-size: 4rem; margin: 0; text-transform: uppercase; letter-spacing: 2px; text-shadow: 0 0 10px var(--neon-cyan); }
-  .controls { display: flex; gap: 15px; margin-bottom: 40px; }
-  button {
-    background: transparent; color: white; border: 2px solid #333;
-    padding: 10px 25px; font-size: 1.5rem; font-weight: bold;
-    border-radius: 8px; cursor: pointer; transition: all 0.3s ease;
-    backdrop-filter: blur(5px);
-  }
-  button.active { border-color: var(--neon-pink); box-shadow: 0 0 15px var(--neon-pink); }
-  #leaderboard { display: grid; grid-template-columns: repeat(3, 1fr); gap: 30px; }
-  .card {
-    background: var(--card-bg); border-radius: 16px; padding: 25px;
-    display: flex; align-items: center; gap: 20px;
-    border: 1px solid #333; backdrop-filter: blur(10px);
-    transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-    animation: fadeIn 0.5s ease forwards;
-  }
-  @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
-  .pulse-glow {
-    border-color: var(--neon-pink);
-    animation: pulse 1.5s infinite alternate;
-  }
-  @keyframes pulse { from { box-shadow: 0 0 10px var(--neon-pink); } to { box-shadow: 0 0 30px var(--neon-pink), inset 0 0 10px var(--neon-pink); } }
-  .avatar { width: 100px; height: 100px; border-radius: 50%; object-fit: cover; }
-  .info { flex-grow: 1; }
-  .username { font-size: 2rem; font-weight: 800; margin: 0 0 10px 0; }
-  .count { font-size: 2.5rem; font-weight: 900; margin: 0; color: var(--neon-cyan); }
-  .change { font-size: 1.5rem; font-weight: bold; margin-top: 10px; padding: 5px 10px; border-radius: 6px; display: inline-block; }
-  .gain { color: var(--bg-dark); background: var(--neon-green); box-shadow: 0 0 10px var(--neon-green); }
-  .drop { color: var(--text-main); background: var(--neon-red); box-shadow: 0 0 15px var(--neon-red); animation: shake 0.5s; }
-  @keyframes shake { 0%, 100% {transform: translateX(0);} 25% {transform: translateX(-5px);} 75% {transform: translateX(5px);} }
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=1920, height=1080, initial-scale=1.0">
+    <title>88 Reality Track</title>
+    <style>
+        :root {
+            --bg: #09090b;
+            --card-bg: rgba(18, 18, 26, 0.6);
+            --neon-pink: #ff2a6d;
+            --neon-cyan: #05d9e8;
+            --neon-green: #01ffc3;
+            --neon-red: #ff003c;
+        }
+        body {
+            margin: 0;
+            width: 1920px;
+            height: 1080px;
+            background-color: var(--bg);
+            color: #fff;
+            font-family: system-ui, -apple-system, sans-serif;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            padding: 50px;
+            box-sizing: border-box;
+        }
+        .header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 40px;
+        }
+        .title-container {
+            display: flex;
+            align-items: center;
+        }
+        .logo {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            margin-right: 25px;
+            box-shadow: 0 0 20px var(--neon-cyan);
+            border: 2px solid var(--neon-cyan);
+        }
+        h1 {
+            font-size: 64px;
+            font-weight: 900;
+            margin: 0;
+            text-transform: uppercase;
+            text-shadow: 0 0 10px var(--neon-cyan);
+        }
+        .controls {
+            display: flex;
+            gap: 20px;
+            background: rgba(255, 255, 255, 0.05);
+            padding: 10px;
+            border-radius: 15px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        button {
+            background: transparent;
+            color: #fff;
+            border: none;
+            padding: 15px 30px;
+            font-size: 24px;
+            font-weight: bold;
+            cursor: pointer;
+            border-radius: 10px;
+            transition: 0.3s;
+        }
+        button.active {
+            background: var(--neon-pink);
+            box-shadow: 0 0 15px var(--neon-pink);
+        }
+        .leaderboard {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            flex: 1;
+        }
+        .card {
+            display: flex;
+            align-items: center;
+            background: var(--card-bg);
+            padding: 20px 40px;
+            border-radius: 20px;
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255,255,255,0.05);
+            transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .card.pulse-glow {
+            animation: pulse-growth 2s infinite;
+        }
+        .card.drop-glow {
+            border-color: var(--neon-red);
+            box-shadow: 0 0 15px rgba(255, 0, 60, 0.3);
+        }
+        @keyframes pulse-growth {
+            0% { box-shadow: 0 0 10px rgba(1, 255, 195, 0.4); border-color: rgba(1, 255, 195, 0.5); }
+            50% { box-shadow: 0 0 30px rgba(1, 255, 195, 0.8); border-color: var(--neon-green); }
+            100% { box-shadow: 0 0 10px rgba(1, 255, 195, 0.4); border-color: rgba(1, 255, 195, 0.5); }
+        }
+        .avatar {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            object-fit: cover;
+            margin-right: 30px;
+        }
+        .info {
+            flex: 1;
+        }
+        .username {
+            font-size: 36px;
+            font-weight: bold;
+            margin: 0 0 10px 0;
+        }
+        .count {
+            font-size: 48px;
+            font-weight: 900;
+            margin: 0;
+            letter-spacing: 2px;
+        }
+        .change {
+            font-size: 32px;
+            font-weight: 900;
+            padding: 10px 20px;
+            border-radius: 12px;
+            background: rgba(255,255,255,0.1);
+        }
+        .change.up { color: var(--neon-green); text-shadow: 0 0 10px var(--neon-green); }
+        .change.down { color: var(--neon-red); text-shadow: 0 0 10px var(--neon-red); }
+    </style>
 </head>
 <body>
-  <header>
-    <!-- Assuming kanika_mann.jpeg as requested from the root dataset -->
-    <img src="kanika_mann.jpeg" alt="Logo" class="logo" onerror="this.src='images/kanika_mann.jpeg'">
-    <h1>88 Reality Track</h1>
-  </header>
-  <div class="controls" id="controls">
-    <button data-days="1" class="active">24 Hours</button>
-    <button data-days="3">3 Days</button>
-    <button data-days="7">7 Days</button>
-  </div>
-  <div id="leaderboard"></div>
-
-<script>
-  let rawData = {};
-  const basePath = window.location.origin + window.location.pathname.replace(/\/[^\/]*$/, '/');
-
-  async function loadData() {
-    try {
-      const response = await fetch('data.json');
-      rawData = await response.json();
-      renderStats(1);
-    } catch (e) { console.error("Data load failed", e); }
-  }
-
-  function renderStats(daysBack) {
-    const dates = Object.keys(rawData).sort();
-    if (dates.length === 0) return;
-    
-    const latestDate = dates[dates.length - 1];
-    const pastDate = dates[Math.max(0, dates.length - 1 - daysBack)];
-    
-    const latestData = rawData[latestDate];
-    const pastDataObj = rawData[pastDate] || {};
-
-    let stats = Object.keys(latestData).map(user => {
-      const current = latestData[user].count;
-      const past = pastDataObj[user] ? pastDataObj[user].count : current;
-      const diff = current - past;
-      return { user, current, diff, img: latestData[user].img };
-    });
-
-    stats.sort((a, b) => b.diff - a.diff);
-    const maxDiff = stats.length > 0 && stats[0].diff > 0 ? stats[0].diff : null;
-
-    const board = document.getElementById('leaderboard');
-    board.innerHTML = '';
-
-    stats.forEach((stat, index) => {
-      const isTop = stat.diff === maxDiff && stat.diff > 0;
-      const isDrop = stat.diff < 0;
-      const imgUrl = stat.img.startsWith('http') ? stat.img : basePath + stat.img;
-      
-      const changeClass = isDrop ? 'drop' : (stat.diff > 0 ? 'gain' : '');
-      const changeText = stat.diff > 0 ? `+${stat.diff.toLocaleString()} \u2191` : (stat.diff < 0 ? `${stat.diff.toLocaleString()} \u2193` : `0 -`);
-
-      const card = document.createElement('div');
-      card.className = `card ${isTop ? 'pulse-glow' : ''}`;
-      card.style.animationDelay = `${index * 0.05}s`;
-      card.innerHTML = `
-        <img src="${imgUrl}" class="avatar" alt="${stat.user}">
-        <div class="info">
-          <h2 class="username">${stat.user}</h2>
-          <p class="count">${stat.current.toLocaleString()}</p>
-          <div class="change ${changeClass}">${changeText}</div>
+    <div class="header">
+        <div class="title-container">
+            <img src="images/logo.jpeg" onerror="this.src='https://picsum.photos/100'" alt="Logo" class="logo">
+            <h1>88 Reality Track</h1>
         </div>
-      `;
-      board.appendChild(card);
-    });
-  }
+        <div class="controls">
+            <button class="active" onclick="updateData(1)">24 Hours</button>
+            <button onclick="updateData(3)">3 Days</button>
+            <button onclick="updateData(7)">7 Days</button>
+        </div>
+    </div>
+    <div class="leaderboard" id="leaderboard"></div>
 
-  document.getElementById('controls').addEventListener('click', (e) => {
-    if (e.target.tagName === 'BUTTON') {
-      document.querySelectorAll('button').forEach(b => b.classList.remove('active'));
-      e.target.classList.add('active');
-      renderStats(parseInt(e.target.getAttribute('data-days')));
-    }
-  });
+    <script>
+        let rawData = {};
+        let sortedDates = [];
 
-  loadData();
-</script>
+        async function init() {
+            try {
+                const res = await fetch('data.json');
+                rawData = await res.json();
+                sortedDates = Object.keys(rawData).sort((a, b) => new Date(b) - new Date(a));
+                updateData(1);
+            } catch (e) {
+                console.error("Data fetch error", e);
+            }
+        }
+
+        function updateData(daysOffset) {
+            document.querySelectorAll('button').forEach((b, i) => {
+                b.className = (i === (daysOffset===1?0:daysOffset===3?1:2)) ? 'active' : '';
+            });
+
+            if (sortedDates.length === 0) return;
+            const currentDate = sortedDates[0];
+            const compareDate = sortedDates[Math.min(daysOffset, sortedDates.length - 1)] || currentDate;
+            
+            const currentStats = rawData[currentDate];
+            const compareStats = rawData[compareDate];
+            
+            let arrayData = [];
+            for (let user in currentStats) {
+                const currentCount = currentStats[user].count;
+                const pastCount = compareStats[user] ? compareStats[user].count : currentCount;
+                const diff = currentCount - pastCount;
+                let imgPath = currentStats[user].img;
+                if (!imgPath.startsWith('http')) {
+                    imgPath = window.location.origin + window.location.pathname.replace(/\/[^\/]*$/, '/') + imgPath;
+                }
+
+                arrayData.push({ user, currentCount, diff, imgPath });
+            }
+
+            arrayData.sort((a, b) => b.diff - a.diff);
+            render(arrayData);
+        }
+
+        function render(data) {
+            const container = document.getElementById('leaderboard');
+            container.innerHTML = '';
+            
+            data.forEach(item => {
+                const card = document.createElement('div');
+                let glowClass = '';
+                if (item.diff > 1000) glowClass = 'pulse-glow';
+                if (item.diff < 0) glowClass = 'drop-glow';
+                
+                card.className = `card ${glowClass}`;
+                
+                const sign = item.diff > 0 ? '+' : '';
+                const changeClass = item.diff >= 0 ? 'up' : 'down';
+                const formattedCount = item.currentCount.toLocaleString();
+                const formattedDiff = Math.abs(item.diff) >= 0 ? item.diff.toLocaleString() : '0';
+
+                card.innerHTML = `
+                    <img src="${item.imgPath}" class="avatar" alt="${item.user}">
+                    <div class="info">
+                        <p class="username">@${item.user}</p>
+                        <p class="count">${formattedCount}</p>
+                    </div>
+                    <div class="change ${changeClass}">${sign}${formattedDiff}</div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        init();
+    </script>
 </body>
 </html>
