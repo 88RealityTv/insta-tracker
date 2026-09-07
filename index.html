@@ -27,8 +27,9 @@
             background-color: var(--bg-deep);
             color: var(--text-main);
             width: 1920px;
-            height: 1080px;
-            overflow: hidden;
+            min-height: 1080px;
+            overflow-y: auto;
+            overflow-x: hidden;
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -36,6 +37,20 @@
             background-image: 
                 radial-gradient(circle at 15% 50%, rgba(0, 243, 255, 0.05), transparent 25%),
                 radial-gradient(circle at 85% 30%, rgba(255, 0, 127, 0.05), transparent 25%);
+        }
+
+        ::-webkit-scrollbar {
+            width: 12px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: var(--bg-deep);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: linear-gradient(135deg, var(--neon-pink), #8a2be2);
+            border-radius: 10px;
+            border: 2px solid var(--bg-deep);
         }
 
         header {
@@ -90,7 +105,7 @@
         #leaderboard {
             position: relative;
             width: 100%;
-            height: 820px;
+            transition: height 0.3s ease;
         }
 
         .card {
@@ -219,12 +234,26 @@
         const SIGNIFICANT_GROWTH_THRESHOLD = 5000; 
         let activeDaysBack = 1;
 
-        // Force absolute path resolution to prevent broken images on GitHub pages
+        // Strip leading slashes to prevent root-domain resolution errors on GitHub Pages
         function resolveImagePath(imgString) {
             if (!imgString) return '';
             if (imgString.startsWith('http')) return imgString;
+            
             let basePath = window.location.origin + window.location.pathname;
-            basePath = basePath.substring(0, basePath.lastIndexOf('/'));
+            
+            // Remove filename if running directly in browser (e.g. index.html)
+            if (basePath.endsWith('.html')) {
+                basePath = basePath.substring(0, basePath.lastIndexOf('/'));
+            }
+            // Remove trailing slash to prevent double slashes
+            if (basePath.endsWith('/')) {
+                basePath = basePath.slice(0, -1);
+            }
+            // Remove leading slash from the JSON image path if present
+            if (imgString.startsWith('/')) {
+                imgString = imgString.substring(1);
+            }
+            
             return `${basePath}/${imgString}`;
         }
 
@@ -234,7 +263,6 @@
 
         async function init() {
             try {
-                // Bypass browser cache for live updates
                 const response = await fetch('data.json?t=' + new Date().getTime());
                 globalDataset = await response.json();
                 
@@ -286,6 +314,9 @@
             const cardHeight = 120;
             const gap = 20;
 
+            // Dynamically expand container height to allow scrolling for 16 profiles
+            board.style.height = `${leaderArray.length * (cardHeight + gap)}px`;
+
             leaderArray.forEach((user, index) => {
                 let card = document.getElementById(`card-${user.username}`);
                 
@@ -303,8 +334,6 @@
                 }
 
                 card.className = `card ${isHighGrowth ? 'high-growth' : ''}`;
-                
-                // Triggers the smooth coordinate transition
                 card.style.transform = `translateY(${index * (cardHeight + gap)}px)`;
 
                 card.innerHTML = `
@@ -324,8 +353,6 @@
         }
 
         window.addEventListener('DOMContentLoaded', init);
-        
-        // Auto-refresh logic for OBS Browser Source every 60 seconds
         setInterval(init, 60000); 
     </script>
 </body>
