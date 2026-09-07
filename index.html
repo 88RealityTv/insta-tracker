@@ -2,65 +2,157 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>OBS Horizontal Overlay Dashboard</title>
+    <title>OBS Live Leaderboard Tracker</title>
     <style>
+        /* Cyberpunk Dark Broadcast Aesthetic */
         * { box-sizing: border-box; margin: 0; padding: 0; }
         body { 
-            background: #0f0f12; 
+            background: #09090b; 
             color: #ffffff; 
-            font-family: system-ui, sans-serif; 
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; 
             padding: 25px; 
-            overflow-x: hidden;
+            overflow: hidden;
         }
         
-        /* Interactive Toggle Switch Styling */
+        /* Premium Backdrop-Blur Glassmorphism Control Panel */
         .controls-container {
             display: flex;
             justify-content: center;
-            margin-bottom: 25px;
+            margin-bottom: 30px;
         }
         .toggle-wrapper {
-            background: #1a1a24;
+            background: rgba(26, 26, 36, 0.8);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
             padding: 6px;
             border-radius: 30px;
             display: inline-flex;
-            border: 1px solid #2d2d3d;
+            border: 1px solid rgba(225, 48, 108, 0.2);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
         }
         .toggle-btn {
             background: transparent;
             border: none;
             color: #a0aec0;
-            padding: 8px 24px;
+            padding: 10px 28px;
             font-size: 14px;
-            font-weight: 700;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
             cursor: pointer;
             border-radius: 20px;
-            transition: all 0.2s ease;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
         .toggle-btn.active {
             color: #ffffff;
-            background: #e1306c;
-            box-shadow: 0 2px 10px rgba(225, 48, 108, 0.4);
+            background: linear-gradient(45deg, #e1306c, #f77737);
+            box-shadow: 0 4px 15px rgba(225, 48, 108, 0.5);
         }
 
-        .grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
-        .card { 
-            background: #1a1a24; padding: 16px; border-radius: 12px; 
-            border: 1px solid #2d2d3d; display: flex; align-items: center; gap: 15px; 
+        /* 4-Column Layout Grid with Smooth Transitions */
+        .grid { 
+            display: grid; 
+            grid-template-columns: repeat(4, 1fr); 
+            gap: 18px; 
         }
-        .profile-img { width: 55px; height: 55px; border-radius: 50%; border: 2px solid #e1306c; object-fit: cover; }
+
+        /* High-Contrast Card Base */
+        .card { 
+            background: #12121a; 
+            padding: 16px; 
+            border-radius: 14px; 
+            border: 1px solid #222232; 
+            display: flex; 
+            align-items: center; 
+            gap: 15px; 
+            position: relative;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+            transition: all 0.5s ease;
+        }
+
+        /* Dynamic Visual Hook: High-Growth Profile Neon Pulse Border */
+        .card.pulse-glow {
+            border-color: #22c55e;
+            animation: neonPulse 2s infinite alternate ease-in-out;
+        }
+
+        /* Rank Badge */
+        .rank-badge {
+            position: absolute;
+            top: -8px;
+            left: -8px;
+            background: #222232;
+            color: #a0aec0;
+            font-size: 11px;
+            font-weight: 900;
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid #33334d;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.5);
+        }
+        .card.pulse-glow .rank-badge {
+            background: #22c55e;
+            color: #09090b;
+            border-color: #22c55e;
+        }
+
+        .profile-img { 
+            width: 58px; 
+            height: 58px; 
+            border-radius: 50%; 
+            border: 2px solid #e1306c; 
+            object-fit: cover; 
+            flex-shrink: 0;
+        }
         .info { flex-grow: 1; min-width: 0; }
-        .name { font-size: 16px; font-weight: 700; color: #e2e8f0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .count { font-size: 24px; font-weight: 800; margin: 2px 0 6px 0; color: #ffffff; }
-        .stat-row { display: flex; justify-content: space-between; font-size: 13px; padding-top: 5px; border-top: 1px solid #252533; }
-        .stat-label { color: #637b94; font-weight: 500; }
-        .up { color: #4caf50; font-weight: 700; }
-        .down { color: #f44336; font-weight: 700; }
-        .neutral { color: #718096; }
+        .name { 
+            font-size: 16px; 
+            font-weight: 700; 
+            color: #f1f5f9; 
+            white-space: nowrap; 
+            overflow: hidden; 
+            text-overflow: ellipsis; 
+            margin-bottom: 2px;
+        }
+        .count { 
+            font-size: 24px; 
+            font-weight: 900; 
+            color: #ffffff; 
+            letter-spacing: -0.5px;
+            margin-bottom: 6px; 
+        }
+        .stat-row { 
+            display: flex; 
+            justify-content: space-between; 
+            font-size: 13px; 
+            padding-top: 5px; 
+            border-top: 1px solid #20202c; 
+        }
+        .stat-label { color: #64748b; font-weight: 600; }
+        
+        /* Attention Grabbing Growth Tags */
+        .up { color: #22c55e; font-weight: 800; text-shadow: 0 0 8px rgba(34, 197, 94, 0.3); }
+        .down { color: #ef4444; font-weight: 800; text-shadow: 0 0 8px rgba(239, 68, 68, 0.3); }
+        .neutral { color: #64748b; font-weight: 700; }
+
+        /* Keyframe Pulse Animation Rule */
+        @keyframes neonPulse {
+            0% {
+                box-shadow: 0 4px 15px rgba(0,0,0,0.5), 0 0 2px rgba(34, 197, 94, 0.2);
+            }
+            100% {
+                box-shadow: 0 4px 15px rgba(0,0,0,0.5), 0 0 12px rgba(34, 197, 94, 0.6);
+            }
+        }
     </style>
 </head>
 <body>
 
+    <!-- Dynamic Control Block -->
     <div class="controls-container">
         <div class="toggle-wrapper">
             <button class="toggle-btn active" onclick="changeRange(1, this)">24 Hours</button>
@@ -69,22 +161,22 @@
         </div>
     </div>
 
-    <div class="grid" id="dashboard">Loading stats...</div>
+    <!-- Main Output Viewport -->
+    <div class="grid" id="dashboard">Loading leaderboard arrays...</div>
 
     <script>
         let globalData = {};
         let currentDaysOffset = 1;
 
-        // Base URL logic to correctly map relative image directories on GitHub Pages
+        // Path safety resolution logic for local GitHub Pages subfolders
         const currentPath = window.location.pathname;
         const directoryPath = currentPath.substring(0, currentPath.lastIndexOf('/') + 1);
         const baseUrl = window.location.origin + directoryPath;
 
         function formatNum(n) { return n ? n.toLocaleString() : '0'; }
         
-        function getTrendHTML(today, past) {
-            if (today === undefined || past === undefined) return `<span class="neutral">--</span>`;
-            const diff = today - past;
+        function getTrendHTML(diff) {
+            if (diff === null || diff === undefined) return `<span class="neutral">--</span>`;
             if (diff > 0) return `<span class="up">▲ +${formatNum(diff)}</span>`;
             if (diff < 0) return `<span class="down">▼ ${formatNum(diff)}</span>`;
             return `<span class="neutral">0</span>`;
@@ -115,36 +207,62 @@
 
             const rangeLabels = { 1: "24h Growth", 3: "3d Growth", 7: "7d Growth" };
 
+            // 1. Process data metrics into sortable array structures
+            let profileList = [];
             for (const user in tData) {
                 const cur = tData[user].count;
-                let imgUrl = tData[user].img || '';
                 const pastVal = pData[user] ? pData[user].count : undefined;
+                const diff = (pastVal !== undefined) ? (cur - pastVal) : 0;
+                
+                profileList.push({
+                    name: user,
+                    count: cur,
+                    img: tData[user].img || '',
+                    diff: (pastVal !== undefined) ? diff : null
+                });
+            }
 
-                // Format file links to use absolute project directories 
+            // 2. Gamification Rule: Competitive Leaderboard Sorting (Highest Growth First)
+            profileList.sort((a, b) => {
+                if (a.diff === null) return 1;
+                if (b.diff === null) return -1;
+                return b.diff - a.diff;
+            });
+
+            // 3. Render Cards Element Trees Loop
+            profileList.forEach((profile, index) => {
+                let imgUrl = profile.img;
+
+                // Format local structural file references cleanly
                 if (imgUrl && !imgUrl.startsWith('http') && !imgUrl.startsWith('data:')) {
-                    if (imgUrl.startsWith('./')) {
-                        imgUrl = imgUrl.substring(2);
-                    }
+                    if (imgUrl.startsWith('./')) imgUrl = imgUrl.substring(2);
                     imgUrl = baseUrl + imgUrl;
                 } else if (!imgUrl) {
                     imgUrl = 'https://placeholder.com';
                 }
 
+                // Apply pulse glow trigger dynamically if the net trend calculation has increased
+                const isHighGrowth = profile.diff !== null && profile.diff > 0;
+                const cardClass = isHighGrowth ? 'card pulse-glow' : 'card';
+
                 const card = document.createElement('div');
-                card.className = 'card';
+                card.className = cardClass;
+                card.style.order = index; // CSS Grid ordering parameter assignment
+                
                 card.innerHTML = `
-                    <img class="profile-img" src="${imgUrl}" alt="${user}" onerror="this.src='https://placeholder.com'">
+                    <div class="rank-badge">${index + 1}</div>
+                    <img class="profile-img" src="${imgUrl}" alt="${profile.name}" onerror="this.src='https://placeholder.com'">
                     <div class="info">
-                        <div class="name">${user}</div>
-                        <div class="count">${formatNum(cur)}</div>
+                        <div class="name">${profile.name}</div>
+                        <div class="count">${formatNum(profile.count)}</div>
                         <div class="stat-row">
                             <span class="stat-label">${rangeLabels[currentDaysOffset]}:</span> 
-                            ${getTrendHTML(cur, pastVal)}
+                            ${getTrendHTML(profile.diff)}
                         </div>
                     </div>
                 `;
                 container.appendChild(card);
-            }
+            });
         }
 
         async function init() {
@@ -152,11 +270,3 @@
                 const res = await fetch('data.json');
                 globalData = await res.json();
                 renderDashboard();
-            } catch (e) { 
-                document.getElementById('dashboard').innerText = "Error loading data.json file."; 
-            }
-        }
-        init();
-    </script>
-</body>
-</html>
