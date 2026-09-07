@@ -40,6 +40,17 @@
                 var(--bg-deep);
         }
 
+        .watermark {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 600px;
+            opacity: 0.15;
+            pointer-events: none;
+            z-index: 0;
+        }
+
         header {
             width: 100%;
             max-width: 980px; /* Constrain width for centering */
@@ -125,6 +136,7 @@
             min-width: 800px;
             flex-grow: 1;
             transition: height 0.4s ease;
+            z-index: 5;
         }
 
         .card {
@@ -250,6 +262,8 @@
     </style>
 </head>
 <body>
+
+    <img src="1788637665929.png" alt="Watermark" class="watermark">
 
     <header>
         <h1>Live <span style="color: var(--neon-cyan);">Tracker</span></h1>
